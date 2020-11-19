@@ -4,7 +4,8 @@
   "description": "",
   "main": "App.js",
   "scripts": {
-    "start": "concurrently \"webpack -d --watch\" \"nodemon build/App.bundle.js\"",
+    "start": "node build/App.bundle.js",
+    "start:dev": "concurrently \"webpack -d --watch\" \"nodemon build/App.bundle.js\"",
     "build": "webpack -p"
   },
   "author": "",
