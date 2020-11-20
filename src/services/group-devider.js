@@ -8,7 +8,7 @@ export default {
         let groupDemand = groups.filter(d => d.total < totalAvg);
         let avg = Math.floor(totalAdverts / groupDemand.length);
 
-        logger.debug(`Calculate avg per groups BEGIN (avg=${totalAvg}, adv=${totalAdverts})`, groups.map(g => [g.group, g.total]));
+        logger.info(`Calculate avg per groups BEGIN (avg=${totalAvg}, adv=${totalAdverts})`, groups.map(g => [g.group, g.total]));
 
         if(!groupDemand.length) {
             return {};
@@ -25,15 +25,15 @@ export default {
                     stat.new = 0;
                 }
                 stat.new += countToAdd;
-                logger.debug(`Calculate avg per groups STEPS ${stat.group}`, {toTotalAvg, countToAdd, new: stat.new});
+                logger.info(`Calculate avg per groups STEPS ${stat.group}`, {toTotalAvg, countToAdd, new: stat.new});
             }
 
 
             groupDemand = groups.filter(d => {
-                logger.debug(`Calculate avg per groups CHECKS (${d.total})`, [d.group, d.total]);
+                logger.info(`Calculate avg per groups CHECKS (${d.total})`, [d.group, d.total]);
                 return d.total < totalAvg
             });
-            logger.debug(`Calculate avg per groups NEW Demand groups (gr=${groupDemand.length})`, groupDemand.map(g => [g.group, g.total]));
+            logger.info(`Calculate avg per groups NEW Demand groups (gr=${groupDemand.length})`, groupDemand.map(g => [g.group, g.total]));
             avg = Math.floor(totalAdverts / groupDemand.length);
         }
 
@@ -55,19 +55,19 @@ export default {
                 assignments[groupStat.group] = [];
             }
 
-            logger.debug(`Create assignments ${groupStat.group} (needed=${groupStat.new}, length=${assignments[groupStat.group].length})`);
+            logger.info(`Create assignments ${groupStat.group} (needed=${groupStat.new}, length=${assignments[groupStat.group].length})`);
             assignments[groupStat.group].push(advert);
             if(assignments[groupStat.group].length >= groupStat.new) {
                 g++;
             }
         }
 
-        logger.debug(`Create assignments (ass=${Object.keys(assignments).length})`, assignments);
+        logger.info(`Create assignments (ass=${Object.keys(assignments).length})`, assignments);
         return assignments;
     },
 
     assignToGroups(adverts, groupStats, totalStats) {
-        logger.debug(`Start group assignments (gr=${groupStats.length}, adv=${adverts.length})`);
+        logger.info(`Start group assignments (gr=${groupStats.length}, adv=${adverts.length})`);
         const totalAdverts = adverts.length + totalStats.total;
 
         const updatedStats = this.getAvgAdvertsPerGroup(totalAdverts, groupStats);

@@ -1,6 +1,10 @@
+const CRON_SCHEDULES = process.env.CRON_SCHEDULES
+    ? process.env.CRON_SCHEDULES.split(';')
+    : [];
+
 export default {
   db: {
-    url: process.env.DB_URL || 'localhost:27017/olx'
+    url: process.env.DB_URL || 'mongodb+srv://full-cron-user:hCXmJVqjyqtuOYRk@phone-cluster.0zlrx.mongodb.net/olx?retryWrites=true&w=majority'
   },
 
   category_url: 'https://www.olx.ua/uk/zhivotnye/sobaki/khmelnitskiy/',
@@ -8,10 +12,19 @@ export default {
   check_numbers_save_key: 'Західний',
 
   crawler_api: {
-    host: 'http://46.63.123.61:3031',
+    hosts: process.env.CRAWLER_API_HOST
+        ? process.env.CRAWLER_API_HOST.split(';')
+        : ['http://46.63.123.61:3031'],
     runUrl: 'download',
     collection_name: 'adverts'
   },
+
+    cron_schedules: {
+        get_group_stats: CRON_SCHEDULES[0] || '0 * * * *',
+        run_crawler: CRON_SCHEDULES[1] || '*/2 * * * *',
+        phone_checks: CRON_SCHEDULES[2] || '*/2 * * * *',
+        assign_adverts: CRON_SCHEDULES[3] || '*/1 * * * *',
+    },
 
   gapi: {
     "client_id":"830124884111-u6bnodoiqql6756o5gc6kjloio8d1v1g.apps.googleusercontent.com",

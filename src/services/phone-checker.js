@@ -14,7 +14,7 @@ export default {
         try {
             const checkNumbers = await this.getCheckNumberList();
 
-            logger.info(`Start uniq and format adverts (length=${adverts.length})`);
+            logger.info(`Start uniq and format adverts (adv=${adverts.length})`);
 
             const uniq = [];
             for(let i = 0; i < adverts.length; i++) {
@@ -29,7 +29,7 @@ export default {
                 }
             }
 
-            logger.info(`End uniq and format adverts (length=${uniq.length})`, uniq);
+            logger.info(`End uniq and format adverts (adv=${uniq.length})`, uniq);
             return uniq;
         } catch (e) {
             logger.error(e.message, e);
@@ -56,7 +56,7 @@ export default {
             }
         }
 
-        logger.info(`Loaded check number list (length=${numbers.length})`);
+        logger.info(`Loaded check number list (num=${numbers.length})`);
         return numbers;
     },
 
@@ -74,6 +74,6 @@ export default {
         }
 
         await PhoneCheck.appendToWorksheet(worksheet, data, position);
-        logger.info(`Save checked numbers to worksheet (num=${data.length}, ws=${worksheet.title})`, data);
+        logger.info(`Save checked numbers to PhoneCheck worksheet (num=${data.length})`, data.map(d => d.number));
     }
 }

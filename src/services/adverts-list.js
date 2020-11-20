@@ -43,7 +43,7 @@ export default {
     },
 
     async saveCheckedAdverts(checkedAdverts, allAdverts) {
-        const ids = []//checkedAdverts.map(a => a.url)//[];
+        const ids = [];
 
         const promises = [];
         for(let adv of checkedAdverts) {
@@ -65,23 +65,23 @@ export default {
             groupStat.new = 0;
 
             if(!assignments[groupName] || !assignments[groupName].length) {
-                logger.debug(`Skip assignments (gr=${groupName}): Not found adverts`);
+                logger.info(`Skip assignments (gr=${groupName}): Not found adverts`);
                 continue;
             }
 
             const worksheet = await PhoneList.loadWorksheet(groupName);
 
             await Promise.all([
-                this.saveAdvertsToWorksheet1(assignments[groupName], groupName),
+                this.saveAdvertsToWorksheet(assignments[groupName], groupName),
                 AdvertRepository.updateByIds(assignments[groupName], {assigned_to: groupName}),
                 groupStat.save()
             ]);
 
-            logger.debug(`Save assignments (gr=${groupName})`);
+            logger.info(`Save assignments (gr=${groupName})`);
         }
     },
 
-    async saveAdvertsToWorksheet1(adverts, worksheetName) {
+    async saveAdvertsToWorksheet(adverts, worksheetName) {
         const position = {row: 1, column: 0};
 
         const data = [];
@@ -94,38 +94,8 @@ export default {
             });
         }
 
-        const res = await PhoneList.appendToWorksheet(worksheetName, data, position);
-        logger.info(`Save adverts to worksheet (adv=${adverts.length}, ws=${worksheetName})`, res);
-    },
-
-    async saveAdvertsToWorksheet(adverts, worksheet) {
-        let rowId = this.getRowIdToAppend(worksheet);
-        for(let advert of adverts) {
-            this.setAdvertToRow(advert, worksheet, rowId);
-            rowId++;
-        }
-
-        const res = await worksheet.saveUpdatedCells({raw: true});
-        logger.info(`Save adverts to worksheet (adv=${adverts.length}, ws=${worksheet.title})`, res);
-    },
-
-    getRowIdToAppend(worksheet) {
-        let rowId = 1;
-        for(let r = 1; r < 100; r++) {
-            if(!worksheet.getCell(r, 1).value) {
-                rowId = r;
-                break;
-            }
-        }
-
-        return rowId;
-    },
-
-    setAdvertToRow(advert, worksheet, rowIndex) {
-        worksheet.getCell(rowIndex, 0).value = moment().format('DD.MM.YYYY HH:mm');
-        worksheet.getCell(rowIndex, 1).value = advert.gender;
-        worksheet.getCell(rowIndex, 2).value = advert.phone;
-        worksheet.getCell(rowIndex, 3).value = advert.url;
+        await PhoneList.appendToWorksheet(worksheetName, data, position);
+        logger.info(`Save adverts to worksheet (adv=${adverts.length}, ws=${worksheetName})`);
     },
 
     async loadGroupStats() {
@@ -149,13 +119,13 @@ export default {
     async getGroupStats() {
         let stat = await GroupStatRepository.getAll();
         if(stat.length) {
-            logger.info(`Get group stat from DB (st=${stat.length})`, stat);
+            logger.info(`Get group stat from DB (st=${stat.length})`, stat.map(s => [s.group, s.total]));
             return stat;
         }
 
         stat = await this.loadGroupStats();
         await GroupStatRepository.insertMany(stat);
-        logger.info(`Get and save group stat (st=${stat.length})`, stat);
+        logger.info(`Get and save group stat (st=${stat.length})`, stat.map(s => [s.group, s.total]));
 
         return GroupStatRepository.getAll();
     },

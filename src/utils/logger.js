@@ -2,9 +2,11 @@ import winston from 'winston';
 require('winston-mongodb');
 import moment from 'moment';
 import config from "../config";
+var path = require('path');
+var scriptName = path.basename(__filename);
 
 const mongoDbTransportParams = {
-  db: `mongodb://${config.db.url}`,
+  db: config.db.url,
   collection: 'logs',
   decolorize: true
 };
@@ -14,7 +16,7 @@ const logger = winston.createLogger({
   format: winston.format.combine(
       winston.format.colorize(),
       winston.format.timestamp(),
-      winston.format.printf(info => `[${moment(info.timestamp).format('YYYY-MM-DD HH:mm:ss.SSS')}] ${info.level}: ${info.message}`)
+      winston.format.printf(info => `[${moment(info.timestamp).format('YYYY-MM-DD HH:mm:ss.SSS')}][${info.level}]${info.message}`)
   ),
   defaultMeta: { service: 'user-service' },
   transports: [
@@ -36,6 +38,10 @@ const logger = winston.createLogger({
 });
 
 export default {
+  setLabel(label) {
+    this.label = label;
+  },
+
   _log(level, message, meta) {
     const transform = (m) => {
       if(typeof m === 'object' && m._doc) {
@@ -53,6 +59,12 @@ export default {
       meta = meta.map(transform);
     } else {
       meta = transform(meta);
+    }
+
+    if(this.label) {
+      message = `[${this.label}]: ${message}}`;
+    } else {
+      message = `: ${message}`;
     }
 
     logger.log(level, message, {

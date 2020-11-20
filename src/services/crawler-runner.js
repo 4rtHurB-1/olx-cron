@@ -4,7 +4,8 @@ import config from "../config";
 
 export default {
     async runCrawler(countAdv) {
-        if(!await this.pingCrawlerAPI()) {
+        const availableHost = await this.pingCrawlerAPIs();
+        if(!availableHost) {
             return false;
         }
 
@@ -18,25 +19,38 @@ export default {
             logger.info(`Run crawler (max=${countAdv})`, data);
             let res = await axios({
                 method: 'post',
-                url: `${config.crawler_api.host}/${config.crawler_api.runUrl}`,
+                url: `${availableHost}/${config.crawler_api.runUrl}`,
                 data: data,
                 headers: {'Content-Type': 'application/json'}
             });
-            logger.info(`Crawler executed (status=${res.status}, res====)`, res);
+            logger.info(`Crawler executed (status=${res.status}, adv=${res.data.length})`);
         } catch (e) {
             logger.error(`Crawler failed: ${e.message}`);
         }
     },
 
-    async pingCrawlerAPI() {
+    async pingCrawlerAPIs() {
         try {
-            let res = await axios.get(config.crawler_api.host);
-
-            if(!res || res.status !== 200) {
-                logger.warning(`Ping crawler API failed (status!=200)`, res);
+            const promises = [];
+            for(let host of config.crawler_api.hosts) {
+                promises.push(axios.get(host));
             }
 
-            return res && res.status === 200;
+            const results = await Promise.all(promises);
+
+            let availableHost = null;
+            for(let [index, res] of results.entries()) {
+                if(res && res.status === 200) {
+                    availableHost = config.crawler_api.hosts[index];
+                    break;
+                }
+            }
+
+            if(!availableHost) {
+                logger.warning(`Ping crawler API failed (status!=200)`);
+            }
+
+            return availableHost;
         } catch (e) {
             logger.warning(`Ping crawler API failed: ${e.message}`, e);
             return false;

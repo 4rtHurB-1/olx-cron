@@ -5,35 +5,40 @@ import RunCrawler from '../crons/run-crawlers';
 import GetGroupStats from '../crons/get-group-stats';
 import AssignAdverts from '../crons/assign-adverts';
 import PhoneChecks from '../crons/phone-checks';
+import config from "../config";
 
 export default {
     start() {
-        const getGroupStatSchedule = '0 * * * *';
-        cron.schedule(getGroupStatSchedule, async () => {
-            logger.debug(`***** Start GetGroupStats cron (${getGroupStatSchedule})`);
+        cron.schedule(config.cron_schedules.get_group_stats, async () => {
+            logger.setLabel('get-group-stats');
+
+            logger.info(`***** Start get-group-stats cron (${config.cron_schedules.get_group_stats})`);
             await GetGroupStats.execute();
-            logger.debug(`***** End GetGroupStats cron`);
+            logger.info(`***** End get-group-stats cron`);
         });
 
-        const runCrawlerSchedule = '*/2 * * * *';
-        cron.schedule(runCrawlerSchedule, async () => {
-            logger.debug(`***** Start RunCrawler cron (${runCrawlerSchedule})`);
+        cron.schedule(config.cron_schedules.run_crawler, async () => {
+            logger.setLabel('run-crawler');
+
+            logger.info(`***** Start run-crawler cron (${config.cron_schedules.run_crawler})`);
             await RunCrawler.execute();
-            logger.debug(`***** End RunCrawler cron`);
+            logger.info(`***** End run-crawler cron`);
         });
 
-        const phoneChecksSchedule = '*/2 * * * *';
-        cron.schedule(phoneChecksSchedule, async () => {
-            logger.debug(`***** Start PhoneChecks cron (${phoneChecksSchedule})`);
+        cron.schedule(config.cron_schedules.phone_checks, async () => {
+            logger.setLabel('phone-checks');
+
+            logger.info(`***** Start phone-checks cron (${config.cron_schedules.phone_checks})`);
             await PhoneChecks.execute();
-            logger.debug(`***** End PhoneChecks cron`);
+            logger.info(`***** End phone-checks cron`);
         });
 
-        const assignAdvertsSchedule = '*/1 * * * *';
-        cron.schedule(assignAdvertsSchedule, async () => {
-            logger.debug(`***** Start AssignAdverts cron (${assignAdvertsSchedule})`);
+        cron.schedule(config.cron_schedules.assign_adverts, async () => {
+            logger.setLabel('assign-adverts');
+
+            logger.info(`***** Start assign-adverts cron (${config.cron_schedules.assign_adverts})`);
             await AssignAdverts.execute();
-            logger.debug(`***** End AssignAdverts cron`);
+            logger.info(`***** End assign-adverts cron`);
         });
     }
 }
