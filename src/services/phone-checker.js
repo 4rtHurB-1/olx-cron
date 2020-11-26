@@ -60,7 +60,7 @@ export default {
         return numbers;
     },
 
-    async saveCheckedUniqNumbers(adverts) {
+    async appendNumbersToWorksheet(adverts) {
         const position = {row: 1, column: 0};
         const worksheet = 'main';
 
@@ -73,7 +73,10 @@ export default {
             });
         }
 
-        await PhoneCheck.appendToWorksheet(worksheet, data, position);
-        logger.info(`Save checked numbers to PhoneCheck worksheet (num=${data.length})`, data.map(d => d.number));
+        return PhoneCheck.appendToWorksheet(worksheet, data, position);
+    },
+
+    async saveWorksheet(worksheet) {
+        await worksheet.saveUpdatedCells({raw: true});
     }
 }

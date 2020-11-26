@@ -22,15 +22,19 @@ export default {
             .select({ _id: 1, phone: 1, url: 1, assigned_to: 1, gender: 1});
     },
 
-    updateByIds(adverts, doc) {
+    updateByIds(adverts, doc, session) {
         const ids = adverts.map(a => a.url);
         logger.info(`Update Adverts (adv=${adverts.length}, doc=${JSON.stringify(doc)})`, {ids, doc});
         return Advert
-            .updateMany({url: {$in: ids}}, {$set :doc});
+            .updateMany({url: {$in: ids}}, {$set :doc})
+            .session(session)
+            .exec();
     },
 
-    updateOne(id, doc) {
+    updateOne(id, doc, session) {
         return Advert
-            .updateOne({url: id}, {$set: doc});
+            .updateOne({url: id}, {$set: doc})
+            .session(session)
+            .exec();
     }
 };

@@ -114,7 +114,7 @@ export function getSpreadsheet(sheetConfig) {
             rowId++;
         }
 
-        await worksheet.saveUpdatedCells({raw: true});
+        return worksheet;
     }
 
     Sheet.load = async function () {

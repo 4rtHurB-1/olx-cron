@@ -2,11 +2,13 @@ import moment from 'moment';
 import {google} from 'googleapis';
 import logger from "../utils/logger";
 import config from "../config";
+import mongoose from 'mongoose';
 
 import {sumStats} from "../utils";
 import GroupStatRepository from "../repositories/group-stat";
 import PhoneList from "../sheets/phone-list";
 import AdvertRepository from "../repositories/advert";
+import PhoneCheckerService from "./phone-checker";
 
 export default {
     async getAdvertDemand() {
@@ -15,87 +17,6 @@ export default {
             stats = sumStats(await this.getGroupStats());
         }*/
         return stats ? stats.demand : false;
-    },
-
-    async getGroupAdverts() {
-        const stats = await this.getGroupStats();
-
-        if(!stats) {
-            return false;
-        }
-
-        return {
-            all: sumStats(stats),
-            groups: stats
-        }
-    },
-
-    async getParsedUncheckedAdverts(limit) {
-        const adverts = await AdvertRepository.getAllUnchecked(limit);
-        logger.info(`Get parsed unchecked adverts (adv=${adverts.length})`);
-        return adverts;
-    },
-
-    async getUnassignedAdverts(limit) {
-        const adverts = await AdvertRepository.getAllUnassigned(limit);
-        logger.info(`Get checked unassigned adverts (adv=${adverts.length})`);
-        return adverts;
-    },
-
-    async saveCheckedAdverts(checkedAdverts, allAdverts) {
-        const ids = [];
-
-        const promises = [];
-        for(let adv of checkedAdverts) {
-            promises.push(AdvertRepository.updateOne(adv.url, adv).then(() => ids.push(adv.url)));
-        }
-        await Promise.all(promises);
-
-        const unCheckedAdverts = allAdverts.filter(a => !ids.includes(a.url));
-        await AdvertRepository.updateByIds(unCheckedAdverts, {checked: false});
-
-        logger.info(`Mark as checked to CheckedAdverts (true=${checkedAdverts.length}, false=${unCheckedAdverts.length})`);
-    },
-
-    async saveAssignedAdverts(assignments, groupStats) {
-        await PhoneList.load();
-
-        for (let groupStat of groupStats) {
-            const groupName = groupStat.group;
-            groupStat.new = 0;
-
-            if(!assignments[groupName] || !assignments[groupName].length) {
-                logger.info(`Skip assignments (gr=${groupName}): Not found adverts`);
-                continue;
-            }
-
-            const worksheet = await PhoneList.loadWorksheet(groupName);
-
-            await Promise.all([
-                this.saveAdvertsToWorksheet(assignments[groupName], groupName),
-                AdvertRepository.updateByIds(assignments[groupName], {assigned_to: groupName}),
-                groupStat.save()
-            ]);
-
-            logger.info(`Save assignments (gr=${groupName})`);
-        }
-    },
-
-    async saveAdvertsToWorksheet(adverts, worksheetName) {
-        const position = {row: 1, column: 0};
-
-        const data = [];
-        for(let adv of adverts) {
-            data.push({
-                date: moment().format('DD.MM.YYYY HH:mm'),
-                gender: adv.gender,
-                phone: adv.phone,
-                key: adv.url
-            });
-        }
-
-        await PhoneList.appendToWorksheet(worksheetName, data, position);
-        logger.info(`Save adverts to worksheet (adv=${adverts.length}, ws=${worksheetName})`);
     },
 
     async loadGroupStats() {
@@ -119,7 +40,6 @@ export default {
     async getGroupStats() {
         let stat = await GroupStatRepository.getAll();
         if(stat.length) {
-            logger.info(`Get group stat from DB (st=${stat.length})`, stat.map(s => [s.group, s.total]));
             return stat;
         }
 
@@ -128,6 +48,165 @@ export default {
         logger.info(`Get and save group stat (st=${stat.length})`, stat.map(s => [s.group, s.total]));
 
         return GroupStatRepository.getAll();
+    },
+
+    async getGroupAdverts() {
+        const stats = await this.getGroupStats();
+
+        if(!stats) {
+            return false;
+        }
+
+        return {
+            all: sumStats(stats),
+            groups: stats
+        }
+    },
+
+    async getParsedUncheckedAdverts(limit) {
+        const adverts = await AdvertRepository.getAllUnchecked(limit);
+        logger.log(adverts.length ? 'info' : 'warn',`Get parsed unchecked adverts (adv=${adverts.length})`);
+        return adverts;
+    },
+
+    async getUnassignedAdverts(limit) {
+        const adverts = await AdvertRepository.getAllUnassigned(limit);
+        logger.log(adverts.length ? 'info' : 'warn', `Get checked unassigned adverts (adv=${adverts.length})`);
+        return adverts;
+    },
+
+    async saveCheckedAdverts(checkedAdverts, allAdverts) {
+        const session = await mongoose.startSession();
+
+        try {
+            session.startTransaction();
+
+            const worksheet = await PhoneCheckerService.appendNumbersToWorksheet(checkedAdverts);
+
+            const saveChecked = await this._saveCheckedAdverts(checkedAdverts, session);
+            this._checkIfSaveToDB(checkedAdverts.length, saveChecked.length, 'checked adverts');
+
+            const saveFalseChecked = await this._saveFalseCheckedAdverts(allAdverts, saveChecked, session);
+            this._checkIfSaveToDB(allAdverts.length - checkedAdverts.length, saveFalseChecked.length, 'false-checked adverts');
+
+            await PhoneCheckerService.saveWorksheet(worksheet);
+
+            await session.commitTransaction();
+
+            logger.info(`Save checked numbers to PhoneCheck worksheet (num=${checkedAdverts.length})`, checkedAdverts.map(d => d.phone));
+            logger.info(`Mark adverts as checked (true=${saveChecked.length}, false=${saveFalseChecked.length})`);
+        } catch (e) {
+            await session.abortTransaction();
+            logger.error(`Error while save checked adverts: ${e.message}`);
+        } finally {
+            session.endSession();
+        }
+    },
+
+    async saveAssignments(assignments, groupStats) {
+        try {
+            await PhoneList.load();
+
+            for (let groupStat of groupStats) {
+                const groupName = groupStat.group;
+                groupStat.new = 0;
+
+                if (!assignments[groupName] || !assignments[groupName].length) {
+                    logger.info(`Skip assignments (gr=${groupName}): Not found adverts`);
+                    continue;
+                }
+
+                await this._saveGroupAssignments(groupName, assignments[groupName], groupStat);
+            }
+        } catch (e) {
+            logger.error(`Error while save assigned adverts: ${e.message}`);
+        }
+    },
+
+    async appendAdvertsToWorksheet(adverts, worksheetName) {
+        const position = {row: 1, column: 0};
+
+        const data = [];
+        for(let adv of adverts) {
+            data.push({
+                date: moment().format('DD.MM.YYYY HH:mm'),
+                gender: adv.gender,
+                phone: adv.phone,
+                key: adv.url
+            });
+        }
+
+        return PhoneList.appendToWorksheet(worksheetName, data, position);
+    },
+
+    async _saveCheckedAdverts(checkedAdverts, session) {
+        const ids = [];
+        const promises = [];
+        for(let adv of checkedAdverts) {
+            promises.push(AdvertRepository.updateOne(adv.url, adv, session));
+        }
+        let res = await Promise.all(promises);
+        for(let [i, r] of res.entries()) {
+            if(r.ok && r.nModified) {
+                ids.push(checkedAdverts[i].url);
+            }
+        }
+
+        return ids;
+    },
+
+    async _saveAssignedAdverts(adverts, groupName, session) {
+        const res = await AdvertRepository.updateByIds(adverts, {assigned_to: groupName}, session);
+
+        return res && res.ok && res.nModified === adverts.length
+            ? adverts.map(a => a.url)
+            : [];
+    },
+
+    async _saveGroupStat(groupStat, session) {
+        const res = await groupStat.save({session});
+        return res && res._id ? [res._id] : [];
+    },
+
+    async _saveGroupAssignments(groupName, adverts, groupStat) {
+        const session = await mongoose.startSession();
+
+        try {
+            const worksheet = await this.appendAdvertsToWorksheet(adverts, groupName);
+
+            const savedCount = await session.withTransaction(async (session) => {
+                const savedAdverts = await this._saveAssignedAdverts(adverts, groupName, session);
+                const groupStatSaved = await this._saveGroupStat(groupStat, session);
+
+                this._checkIfSaveToDB(adverts.length, savedAdverts.length, `${groupName} assigned adverts`);
+                this._checkIfSaveToDB(1, groupStatSaved.length, `${groupName} stat`);
+
+                await worksheet.saveUpdatedCells({raw: true});
+
+                return savedAdverts.length;
+            });
+
+            logger.info(`Save assignments (gr=${groupName}, adv=${savedCount})`);
+        } catch (e) {
+            logger.error(`Error while save group assignments: ${e.message}`);
+        } finally {
+            session.endSession();
+        }
+    },
+
+    async _saveFalseCheckedAdverts(allAdverts, savedCheckedAdvertIDs, session) {
+        const unCheckedAdverts = allAdverts.filter(a => !savedCheckedAdvertIDs.includes(a.url));
+        const res = await AdvertRepository.updateByIds(unCheckedAdverts, {checked: false}, session);
+
+        return res && res.ok && res.nModified === unCheckedAdverts.length
+            ? unCheckedAdverts.map(a => a.url)
+            : [];
+    },
+
+    _checkIfSaveToDB(needSave, saved, key = 'records') {
+        if(needSave > 0 && (!saved || needSave !== saved)) {
+            throw new Error(`Failed to save ${key} (${saved ? saved : 0} from ${needSave})`)
+        }
     },
 
     initGApi() {

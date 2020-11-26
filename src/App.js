@@ -20,6 +20,10 @@ app.use('/', helloRoute);
 
 const PORT = process.env.PORT || 3030;
 app.listen(PORT , () => {
+  if(process.env.TEST_SHEETS) {
+    logger.debug(`Test sheets environment enabled`);
+  }
+
   logger.info('Server (olx-cron) listening on port ' + PORT, {metadata:{port: PORT}});
 });
 

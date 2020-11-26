@@ -5,28 +5,29 @@ import AdvertListService from '../services/adverts-list';
 
 export default {
     async execute() {
-        const demand = await AdvertListService.getAdvertDemand();
+        try {
+            const demand = await AdvertListService.getAdvertDemand();
 
-        if (!demand) {
-            logger.warning(`PhoneChecks cron: There isn't demand`);
-            return;
+            if (!demand) {
+                logger.warning(`PhoneChecks cron: There isn't demand`);
+                return;
+            }
+
+            const adverts = await AdvertListService.getParsedUncheckedAdverts(demand);
+
+            if(_.isEmpty(adverts)) {
+                return;
+            }
+
+            const checkedAdverts = await PhoneCheckerService.getUniqAdverts(adverts);
+
+            if(_.isEmpty(adverts)) {
+                return;
+            }
+
+            await AdvertListService.saveCheckedAdverts(checkedAdverts, adverts);
+        } catch (e) {
+            logger.error(`Error while running PhoneChecks cron: ${e.message}`, e);
         }
-
-        const adverts = await AdvertListService.getParsedUncheckedAdverts(demand);
-
-        if(_.isEmpty(adverts)) {
-            logger.warning(`PhoneChecks cron: Not found adverts`);
-            return;
-        }
-
-        const checkedAdverts = await PhoneCheckerService.getUniqAdverts(adverts);
-
-        if(_.isEmpty(adverts)) {
-            logger.warning(`PhoneChecks cron: Not found checked adverts`);
-            return;
-        }
-
-        await AdvertListService.saveCheckedAdverts(checkedAdverts, adverts);
-        await PhoneCheckerService.saveCheckedUniqNumbers(checkedAdverts);
     }
 }

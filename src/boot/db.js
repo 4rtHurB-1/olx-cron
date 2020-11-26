@@ -8,7 +8,7 @@ export default {
   async connect() {
     try {
       await mongoose.connect(config.db.url, {
-        useNewUrlParser: true,
+        useNewUrlParser: true
       });
       logger.info(`Connected to ${config.db.url}`);
       return true;

@@ -21,9 +21,9 @@ export default {
 
     cron_schedules: {
         get_group_stats: CRON_SCHEDULES[0] || '0 * * * *',
-        run_crawler: CRON_SCHEDULES[1] || '*/2 * * * *',
-        phone_checks: CRON_SCHEDULES[2] || '*/2 * * * *',
-        assign_adverts: CRON_SCHEDULES[3] || '*/1 * * * *',
+        run_crawler: CRON_SCHEDULES[1] || '*/5 * * * *',
+        phone_checks: CRON_SCHEDULES[2] || '5,15,25,35,45,55 * * * *',
+        assign_adverts: CRON_SCHEDULES[3] || '*/10 * * * *',
     },
 
   gapi: {

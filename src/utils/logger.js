@@ -48,10 +48,6 @@ export default {
         return m._doc;
       }
 
-     /* if(typeof m === 'object') {
-        Object.values()
-      }*/
-
       return m;
     }
 
@@ -62,7 +58,7 @@ export default {
     }
 
     if(this.label) {
-      message = `[${this.label}]: ${message}}`;
+      message = `[${this.label}]: ${message}`;
     } else {
       message = `: ${message}`;
     }
@@ -70,6 +66,10 @@ export default {
     logger.log(level, message, {
       metadata: meta
     });
+  },
+
+  log(level, message, meta) {
+    this._log(level, message, meta)
   },
 
   info(message, meta) {

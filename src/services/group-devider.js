@@ -8,7 +8,7 @@ export default {
         let groupDemand = groups.filter(d => d.total < totalAvg);
         let avg = Math.floor(totalAdverts / groupDemand.length);
 
-        logger.info(`Calculate avg per groups BEGIN (avg=${totalAvg}, adv=${totalAdverts})`, groups.map(g => [g.group, g.total]));
+        logger.info(`Start calculate avg per groups (avg=${totalAvg}, adv=${totalAdverts})`, groups.map(g => [g.group, g.total]));
 
         if(!groupDemand.length) {
             return {};
@@ -25,19 +25,15 @@ export default {
                     stat.new = 0;
                 }
                 stat.new += countToAdd;
-                logger.info(`Calculate avg per groups STEPS ${stat.group}`, {toTotalAvg, countToAdd, new: stat.new});
             }
 
 
             groupDemand = groups.filter(d => {
-                logger.info(`Calculate avg per groups CHECKS (${d.total})`, [d.group, d.total]);
                 return d.total < totalAvg
             });
-            logger.info(`Calculate avg per groups NEW Demand groups (gr=${groupDemand.length})`, groupDemand.map(g => [g.group, g.total]));
             avg = Math.floor(totalAdverts / groupDemand.length);
         }
 
-        logger.info(`Calculate avg per groups ENDED (avg=${totalAvg}, adv=${totalAdverts})`, groups.map(g => [g.group, g.total]));
         return groups;
     },
 
@@ -47,22 +43,26 @@ export default {
         for(let advert of adverts) {
             const groupStat = groups[g];
 
-            if(!groupStat || !groupStat.new) {
+            if(!groupStat) {
                 break;
+            }
+
+            if(!groupStat.new) {
+                g++;
+                continue;
             }
 
             if(!assignments[groupStat.group]) {
                 assignments[groupStat.group] = [];
             }
 
-            logger.info(`Create assignments ${groupStat.group} (needed=${groupStat.new}, length=${assignments[groupStat.group].length})`);
             assignments[groupStat.group].push(advert);
             if(assignments[groupStat.group].length >= groupStat.new) {
                 g++;
             }
         }
 
-        logger.info(`Create assignments (ass=${Object.keys(assignments).length})`, assignments);
+        logger.info(`Get assignments (ass=${Object.keys(assignments).length})`, assignments);
         return assignments;
     },
 
@@ -71,8 +71,10 @@ export default {
         const totalAdverts = adverts.length + totalStats.total;
 
         const updatedStats = this.getAvgAdvertsPerGroup(totalAdverts, groupStats);
+        logger.info(`Calculate avg per groups (adv=${totalAdverts})`, updatedStats.map(g => [g.group, g.total]));
 
         if(_.isEmpty(updatedStats)) {
+            logger.warning(`Hasn't stats for assignments`);
             return {};
         }
 
