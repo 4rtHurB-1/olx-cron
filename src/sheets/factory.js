@@ -18,45 +18,6 @@ function defineWorksheet(obj, key, worksheet) {
     });
 }
 
-function getRowIdToAppend(worksheet, startPosition) {
-    let rowIndex = startPosition.row;
-    let prevRowIndex;
-
-    let emptyCells = 0;
-    let r = rowIndex;
-    let value = worksheet.getCell(startPosition.row, startPosition.column).value;
-
-    while(emptyCells <= 10) {
-        if(!value) {
-            if(emptyCells === 0) {
-                prevRowIndex = rowIndex;
-                rowIndex = r;
-            }
-
-            emptyCells++;
-        }
-
-        if(value && emptyCells !== 0) {
-            emptyCells = 0;
-            rowIndex = prevRowIndex;
-            prevRowIndex = null;
-        }
-
-        r++;
-        value = worksheet.getCell(r, startPosition.column).value
-    }
-
-    return rowIndex;
-}
-
-function setObjectToRow(obj, worksheet, rowIndex, columnIndex) {
-    let columnId = columnIndex;
-    for(let value of Object.values(obj)) {
-        worksheet.getCell(rowIndex, columnId).value = value;
-        columnId++;
-    }
-}
-
 export function getSpreadsheet(sheetConfig) {
     const _Sheet = new GoogleSpreadsheet(sheetConfig.id);
     const Sheet = Object.create(_Sheet);
@@ -99,20 +60,6 @@ export function getSpreadsheet(sheetConfig) {
         }
 
         await worksheet.loadCells(range);
-
-        return worksheet;
-    }
-
-    Sheet.appendToWorksheet = async function (worksheetName, data, position = {row: 0, column: 0}) {
-        const worksheet = await this.loadWorksheet(worksheetName);
-
-        let rowId = getRowIdToAppend(worksheet, position);
-        for(let obj of data) {
-            if(!worksheet.getCell(rowId, position.column).value) {
-                setObjectToRow(obj, worksheet, rowId, position.column);
-            }
-            rowId++;
-        }
 
         return worksheet;
     }

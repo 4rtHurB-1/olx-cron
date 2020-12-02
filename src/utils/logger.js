@@ -20,19 +20,19 @@ const logger = winston.createLogger({
   ),
   defaultMeta: { service: 'user-service' },
   transports: [
-    new winston.transports.Console({level: 'debug'}),
+    new winston.transports.Console({level: 'info'}),
     new winston.transports.MongoDB({
       ...mongoDbTransportParams,
-      level: 'debug',
+      level: 'info',
     }),
-   /* new winston.transports.MongoDB({
+    new winston.transports.MongoDB({
       ...mongoDbTransportParams,
       level: 'warn',
     }),
     new winston.transports.MongoDB({
       ...mongoDbTransportParams,
       level: 'error',
-    })*/
+    })
   ],
   exitOnError: false
 });
@@ -68,8 +68,8 @@ export default {
     });
   },
 
-  log(level, message, meta) {
-    this._log(level, message, meta)
+  log(cond, message, meta) {
+    this._log(cond ? 'info' : 'warn', message, meta)
   },
 
   info(message, meta) {

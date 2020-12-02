@@ -1,9 +1,11 @@
+import moment from "moment";
 import logger from '../utils/logger';
 import config from "../config";
 
 import PhoneCheck from "../sheets/phone-check";
+import SheetsService from "../services/sheets-service";
 import {correctPhoneFormat, detectGenderByName} from "../utils";
-import moment from "moment";
+import PhoneList from "../sheets/phone-list";
 
 export default {
     async getUniqAdverts(adverts) {
@@ -19,7 +21,7 @@ export default {
             const uniq = [];
             for(let i = 0; i < adverts.length; i++) {
                 let phone = correctPhoneFormat(adverts[i].phone);
-                if(!checkNumbers.includes(phone) && !uniq.find(u => u.phone === phone)) {
+                if(phone && !checkNumbers.includes(phone) && !uniq.find(u => u.phone === phone)) {
                     uniq.push({
                         phone,
                         url: adverts[i].url,
@@ -38,9 +40,7 @@ export default {
 
     async getCheckNumberList() {
         logger.info(`Start load check number list`);
-        await PhoneCheck.load();
-
-        const numberArrays = await PhoneCheck.main.getCellsInRange(config.sheets.phone_check.range);
+        const numberArrays = await SheetsService.getCellsInRange(PhoneCheck, config.sheets.phone_check.range);
 
         const numbers = [];
         let empty = 0;
@@ -58,25 +58,5 @@ export default {
 
         logger.info(`Loaded check number list (num=${numbers.length})`);
         return numbers;
-    },
-
-    async appendNumbersToWorksheet(adverts) {
-        const position = {row: 1, column: 0};
-        const worksheet = 'main';
-
-        const data = [];
-        for(let adv of adverts) {
-            data.push({
-                number: adv.phone,
-                date: moment().format('DD.MM.YYYY HH:mm:ss'),
-                key: config.check_numbers_save_key
-            });
-        }
-
-        return PhoneCheck.appendToWorksheet(worksheet, data, position);
-    },
-
-    async saveWorksheet(worksheet) {
-        await worksheet.saveUpdatedCells({raw: true});
     }
 }

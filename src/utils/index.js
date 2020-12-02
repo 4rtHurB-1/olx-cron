@@ -17,6 +17,10 @@ export function correctPhoneFormat(phone) {
     phone = `0${phone}`;
   }
 
+  if(phone.length < 10) {
+    return null;
+  }
+
   // Make format 3322 (like *** *** ** **)
   return phone.replace(/^([\d]{3})([\d]{3})([\d]{2})([\d]{2})/g, '$1 $2 $3 $4').substr(0, 13);
 }

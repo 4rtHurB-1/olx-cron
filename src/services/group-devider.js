@@ -2,13 +2,9 @@ import _ from 'lodash';
 import logger from '../utils/logger';
 
 export default {
-    getAvgAdvertsPerGroup(totalAdverts, groups) {
-        const totalAvg =  Math.floor(totalAdverts / groups.length);
-
+    getAvgAdvertsPerGroup(totalAdverts, totalAvg, groups) {
         let groupDemand = groups.filter(d => d.total < totalAvg);
         let avg = Math.floor(totalAdverts / groupDemand.length);
-
-        logger.info(`Start calculate avg per groups (avg=${totalAvg}, adv=${totalAdverts})`, groups.map(g => [g.group, g.total]));
 
         if(!groupDemand.length) {
             return {};
@@ -52,31 +48,34 @@ export default {
                 continue;
             }
 
-            if(!assignments[groupStat.group]) {
-                assignments[groupStat.group] = [];
+            if(!assignments[groupStat.name]) {
+                assignments[groupStat.name] = [];
             }
 
-            assignments[groupStat.group].push(advert);
-            if(assignments[groupStat.group].length >= groupStat.new) {
+            assignments[groupStat.name].push(advert);
+            if(assignments[groupStat.name].length >= groupStat.new) {
                 g++;
             }
         }
 
-        logger.info(`Get assignments (ass=${Object.keys(assignments).length})`, assignments);
+        logger.log(Object.keys(assignments).length,`Get assignments (ass=${Object.keys(assignments).length})`, assignments);
         return assignments;
     },
 
-    assignToGroups(adverts, groupStats, totalStats) {
-        logger.info(`Start group assignments (gr=${groupStats.length}, adv=${adverts.length})`);
+    assignToGroups(adverts, groups, totalStats) {
         const totalAdverts = adverts.length + totalStats.total;
+        const totalAvg =  Math.floor(totalAdverts / groups.length);
 
-        const updatedStats = this.getAvgAdvertsPerGroup(totalAdverts, groupStats);
-        logger.info(`Calculate avg per groups (adv=${totalAdverts})`, updatedStats.map(g => [g.group, g.total]));
+        logger.info(`Start calculate avg per groups (new-adv=${adverts.length}, all-adv=${totalAdverts}, avg=${totalAvg})`, groups.map(g => [g.name, g.total]));
+
+        const updatedStats = this.getAvgAdvertsPerGroup(totalAdverts, totalAvg, groups);
 
         if(_.isEmpty(updatedStats)) {
-            logger.warning(`Hasn't stats for assignments`);
+            logger.warning(`Hasn't demand for assignments`);
             return {};
         }
+
+        logger.info(`Calculate avg per groups (adv=${totalAdverts})`, updatedStats.map(g => [g.name, g.total]));
 
         return this.assignAdvertsToGroups(adverts, updatedStats);
     }

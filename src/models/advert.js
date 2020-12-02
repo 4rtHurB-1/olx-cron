@@ -1,4 +1,4 @@
-import mongoose, { Schema } from 'mongoose';
+import { Schema, model } from 'mongoose';
 
 const AdvertSchema = new Schema({
   phone: String,
@@ -15,6 +15,6 @@ const AdvertSchema = new Schema({
   timestamps: { updatedAt: 'updated_at'}
 });
 
-const Advert = mongoose.model('Advert', AdvertSchema);
+const Advert = model('Advert', AdvertSchema);
 
 export default Advert;

@@ -9,6 +9,7 @@ export default {
 
   category_url: 'https://www.olx.ua/uk/zhivotnye/sobaki/khmelnitskiy/',
   maxAdvPerGroups: 50,
+  groups: 9,
   check_numbers_save_key: 'Західний',
 
   crawler_api: {
@@ -45,7 +46,7 @@ export default {
           worksheets: {
               main: 1085949262
           },
-          range: 'A2:C15000'
+          range: 'A1:C20000'
       },
       phone_list: {
           id: '1dT70wa_35lm8hfBAkMLb_I1HWJ5cJVDfkMvI-0ZzSZY',
@@ -76,7 +77,7 @@ export default {
         main: 'Аркуш1',
         test: 1085949262
       },
-      range: 'A2:C15000'
+      range: 'A2:C20000'
     },
     phone_list: {
       id: '1JwuoRmHlo81hcAltcpOgwZB1npUc5an7q0E3gs7g41g',

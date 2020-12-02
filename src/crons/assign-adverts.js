@@ -7,27 +7,27 @@ import AdvertListService from '../services/adverts-list';
 export default {
     async execute() {
         try {
-            const stats = await AdvertListService.getGroupAdverts();
+            const stats = await AdvertListService.getGroupStat();
 
-            if(!stats) {
-                logger.warning(`AssignAdverts cron: Not found stats`);
+            if(_.isEmpty(stats)) {
+                logger.warning(`AssignAdverts cron: Not found group stat`);
                 return;
             }
 
-            const {all, groups} = stats;
+            const {groupsTotal, groups} = stats;
 
-            if(!all.demand) {
+            if(!groupsTotal.demand) {
                 logger.warning(`AssignAdverts cron: There isn't demand`);
                 return;
             }
 
-            const adverts = await AdvertListService.getUnassignedAdverts(all.demand);
+            const adverts = await AdvertListService.getUnassignedAdverts(groupsTotal.demand);
 
-            if(!adverts.length) {
+            if(_.isEmpty(adverts)) {
                 return;
             }
 
-            const assignments = GroupDividerService.assignToGroups(adverts, groups, all);
+            const assignments = GroupDividerService.assignToGroups(adverts, groups, groupsTotal);
 
             if(_.isEmpty(assignments)) {
                 return;

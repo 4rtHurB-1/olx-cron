@@ -1,6 +1,9 @@
 import axios from 'axios';
+import moment from 'moment';
 import logger from '../utils/logger';
 import config from "../config";
+
+import StatRepository from "../repositories/stat";
 
 export default {
     async runCrawler(countAdv) {
@@ -15,17 +18,24 @@ export default {
             collection: config.crawler_api.collection_name
         }
 
+        let res;
+        let startAt = moment();
         try {
             logger.info(`Run crawler (max=${countAdv})`, data);
-            let res = await axios({
+
+            res = await axios({
                 method: 'post',
                 url: `${availableHost}/${config.crawler_api.runUrl}`,
                 data: data,
                 headers: {'Content-Type': 'application/json'}
             });
-            logger.info(`Crawler executed (status=${res.status}, adv=${res.data.length})`);
+
+            logger.info(`Crawler executed (status=${res.status}, adv=${res.data.length - 1})`);
         } catch (e) {
             logger.error(`Crawler failed: ${e.message}`);
+
+        } finally {
+            await this.saveStat(res, startAt);
         }
     },
 
@@ -55,5 +65,20 @@ export default {
             logger.warning(`Ping crawler API failed: ${e.message}`, e);
             return false;
         }
+    },
+
+    async saveStat(res, startAt) {
+        const isSuccess = res && +res.status === 200;
+
+        let stat;
+        if(isSuccess) {
+            stat = {
+                maxAdverts: res.config.data.max,
+                adverts: res.data.length - 1,
+                timeExecution: moment().diff(startAt, 'milliseconds')
+            }
+        }
+
+        await StatRepository.saveCrawlerStat(isSuccess, stat);
     }
 }
