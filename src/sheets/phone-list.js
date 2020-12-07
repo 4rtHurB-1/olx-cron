@@ -1,6 +1,9 @@
-import config from "../config";
 import {getSpreadsheet} from './factory';
+import {getConfigValue} from "../utils";
 
-const configKey = process.env.TEST_SHEETS ? 'test_sheets' : 'sheets';
+const getConfig = () => {
+    const configKey = process.env.TEST_SHEETS ? 'test_sheets' : 'sheets';
+    return getConfigValue(`${configKey}.phone_list`, false);
+}
 
-export default getSpreadsheet(config[configKey].phone_list);
+export default getSpreadsheet(getConfig());

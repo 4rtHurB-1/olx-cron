@@ -149,5 +149,13 @@ export default {
                 }
             })
             .limit(10);
+    },
+
+    getActual() {
+        return Stat
+            .find({
+                actual: true,
+            })
+            .limit(5);
     }
 };

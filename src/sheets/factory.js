@@ -59,7 +59,11 @@ export function getSpreadsheet(sheetConfig) {
             range = worksheetConfig.range;
         }
 
-        await worksheet.loadCells(range);
+        try {
+            worksheet.getCellByA1(range.split(':').shift());
+        } catch (e) {
+            await worksheet.loadCells(range);
+        }
 
         return worksheet;
     }
@@ -68,7 +72,6 @@ export function getSpreadsheet(sheetConfig) {
         try {
             await _Sheet.useServiceAccountAuth(gapiCreds);
             await _Sheet.loadInfo();
-            await this.loadWorksheet('main');
         } catch (e) {
             logger.error(e.message, e);
         }

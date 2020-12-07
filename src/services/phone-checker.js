@@ -1,11 +1,10 @@
-import moment from "moment";
 import logger from '../utils/logger';
-import config from "../config";
+import {correctPhoneFormat, detectGenderByName, getConfigValue} from "../utils";
 
 import PhoneCheck from "../sheets/phone-check";
 import SheetsService from "../services/sheets-service";
-import {correctPhoneFormat, detectGenderByName} from "../utils";
-import PhoneList from "../sheets/phone-list";
+
+const worksheetName = 'main';
 
 export default {
     async getUniqAdverts(adverts) {
@@ -40,7 +39,8 @@ export default {
 
     async getCheckNumberList() {
         logger.info(`Start load check number list`);
-        const numberArrays = await SheetsService.getCellsInRange(PhoneCheck, config.sheets.phone_check.range);
+        const range = getConfigValue('sheets.phone_check.phone_range', false);
+        const numberArrays = await SheetsService.getCellsInRange(PhoneCheck, worksheetName, range);
 
         const numbers = [];
         let empty = 0;

@@ -31,7 +31,7 @@ export default {
             .exec();
     },
 
-    updateOne(id, doc, session) {
+    async updateOne(id, doc, session) {
         return Advert
             .updateOne({url: id}, {$set: doc})
             .session(session)

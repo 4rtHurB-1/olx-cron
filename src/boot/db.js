@@ -1,16 +1,18 @@
 import mongoose from 'mongoose';
 import logger from '../utils/logger';
-import config from '../config';
+import {getConfigValue} from "../utils";
 
 mongoose.Promise = Promise;
 
 export default {
   async connect() {
     try {
-      await mongoose.connect(config.db.url, {
+      let dbUrl = getConfigValue('db.url', false);
+
+      await mongoose.connect(dbUrl, {
         useNewUrlParser: true
       });
-      logger.info(`Connected to ${config.db.url}`);
+      logger.info(`Connected to ${dbUrl}`);
       return true;
     } catch (e) {
       logger.error(`Failed connect to mongodb: ${e.message}`);

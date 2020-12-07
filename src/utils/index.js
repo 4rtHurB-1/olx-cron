@@ -1,5 +1,8 @@
 import genderDetection from 'gender-detection';
 import {transliterate} from 'inflected';
+import config from '../config';
+
+import ConfigRepository from '../repositories/config';
 
 export function correctPhoneFormat(phone) {
   // Replace all not number characters (+380 98*** to 098***)
@@ -50,13 +53,61 @@ export function detectGenderByName(name) {
   }
 }
 
-export function sumStats(stats) {
-  return stats.reduce((totalStats, stat) => {
-    return {
-      total: totalStats.total + stat.total,
-      demand: totalStats.demand + stat.demand
+const getSplittedKey = (key) => {
+  let multiKey = key.split('.');
+  let singleKey = multiKey.shift();
+
+  return {singleKey, multiKey};
+}
+
+const getValueFromConf = (key, dbConf, config) => {
+  let conf = dbConf ? dbConf : config;
+
+  if(key.multiKey.length > 0) {
+    for(let k of key.multiKey) {
+      conf = conf[k];
     }
-  });
+  }
+
+  return conf;
+}
+
+export function getConfigValue(key, db = true) {
+  key = getSplittedKey(key);
+
+  let dbConf = null;
+  if(db) {
+    return new Promise((resolve) => {
+      ConfigRepository.getByKey(key.singleKey).then(dbConf => {
+        resolve(getValueFromConf(key, dbConf, config[key.singleKey]));
+      })
+    })
+  }
+
+  return getValueFromConf(key, dbConf, config[key.singleKey]);
+}
+
+export async function getConfigValues(keys, db = true) {
+  const singleKeys = [];
+  const newKeys = [];
+  for(let key of keys) {
+    const splittedKey = getSplittedKey(key);
+    singleKeys.push(splittedKey.singleKey);
+    newKeys.push(splittedKey);
+  }
+
+  let dbConfigs = null;
+  if(db) {
+    dbConfigs = await ConfigRepository.getByKeys(singleKeys);
+  }
+
+  const values = [];
+  for(let key of newKeys) {
+    let dbConf = dbConfigs ? dbConfigs.find(conf => conf.key === key.singleKey) : null;
+    values.push(getValueFromConf(key, dbConf, config[key.singleKey]));
+  }
+
+  return values;
 }
 
 export const urlRegExp =

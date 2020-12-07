@@ -2,68 +2,25 @@ import mongoose from 'mongoose';
 import {google} from 'googleapis';
 import _ from 'lodash';
 import logger from "../utils/logger";
-import config from "../config";
 
 import PhoneList from "../sheets/phone-list";
-import PhoneCheck from "../sheets/phone-check";
 import SheetsService from "./sheets-service";
-import StatRepository from "../repositories/stat";
+import StatsService from "./stats";
 import AdvertRepository from "../repositories/advert";
+import {getConfigValue} from "../utils";
 
 export default {
     groupStatLoader: null,
 
     async getAdvertDemand() {
-        let stat = await this.getGroupStat();
-        return stat ? stat.groupsTotal.demand : false;
-    },
+        let stat = await StatsService.getGroupStat();
 
-    async loadGroupStats(groupName = null) {
-        await SheetsService.loadSheet(PhoneList);
-
-        if(groupName) {
-            const groupIndex = groupName.replace(/[^0-9]/g, '');
-            return {
-                name: groupName,
-                total: SheetsService.getCellValue(PhoneList, 1, groupIndex - 1)
-            }
+        if(!stat) {
+            return false;
         }
 
-        const groupLength = 9;
-        const stats = [];
-        for(let r = 0; r < 2; r++) {
-            for(let c = 0; c < groupLength; c++) {
-                let value = SheetsService.getCellValue(PhoneList, r, c);
-                if(r === 0) {
-                    stats.push({name: `group${c+1}`});
-                } else if(r === 1) {
-                    stats[c].total = value;
-                }
-            }
-        }
-
-        return stats;
-    },
-
-    async _loadGroupStat() {
-        let groupStat = await StatRepository.getGroupStat();
-
-        if(_.isEmpty(groupStat.groups)) {
-            groupStat.groups = await this.loadGroupStats();
-            await groupStat.save();
-            logger.info(`Get and save group stat (st=${groupStat.groups.length})`, groupStat.groups.map(s => [s.name, s.total]));
-        }
-
-        this.groupStatLoader = null;
-        return groupStat;
-    },
-
-    async getGroupStat() {
-        if(!this.groupStatLoader) {
-            this.groupStatLoader = this._loadGroupStat();
-        }
-
-        return this.groupStatLoader;
+        const total = await stat.getGroupsTotal();
+        return total.demand;
     },
 
     async getParsedUncheckedAdverts(limit) {
@@ -81,11 +38,9 @@ export default {
     async saveCheckedAdverts(checkedAdverts, allAdverts) {
         const session = await mongoose.startSession();
 
-        let added, worksheet, savedToWorksheet;
+        let addedRows;
         try {
             session.startTransaction();
-
-            ({added, worksheet} = await SheetsService.appendNumbersToWorksheet(checkedAdverts));
 
             const saveChecked = await this._saveCheckedAdverts(checkedAdverts, session);
             this._checkIfSaveToDB(checkedAdverts.length, saveChecked.length, 'checked adverts');
@@ -93,17 +48,17 @@ export default {
             const saveFalseChecked = await this._saveFalseCheckedAdverts(allAdverts, saveChecked, session);
             this._checkIfSaveToDB(allAdverts.length - checkedAdverts.length, saveFalseChecked.length, 'false-checked adverts');
 
-            await SheetsService.saveWorksheet(worksheet);
-            savedToWorksheet = true;
+            addedRows = await SheetsService.saveNumbersToWorksheet(checkedAdverts);
 
             await StatRepository.saveCheckStat(allAdverts.length, saveChecked.length, {session});
 
             await session.commitTransaction();
+
             logger.info(`Save checked numbers to PhoneCheck worksheet (num=${saveChecked.length})`, checkedAdverts.map(d => d.phone));
             logger.info(`Mark adverts as checked (true=${saveChecked.length}, false=${saveFalseChecked.length})`);
         } catch (e) {
-            if(savedToWorksheet) {
-                await SheetsService.undoSaveWorksheet(PhoneCheck, 'main', added);
+            if(addedRows && addedRows.length) {
+                await SheetsService.undoSaveNumbersToWorksheet(addedRows);
             }
             await session.abortTransaction();
             logger.error(`Error while save checked adverts: ${e.message}`);
@@ -152,23 +107,6 @@ export default {
             : [];
     },
 
-    async _saveGroupStat(group, session) {
-        let [newGroupStat, groupStat] = await Promise.all([
-            this.loadGroupStats(group.name),
-            this.getGroupStat()
-        ]);
-
-        for(let group of groupStat.groups) {
-            if(group.name === newGroupStat.name) {
-                group.total = newGroupStat.total;
-                break;
-            }
-        }
-
-        const res = await groupStat.save({session});
-        return res && res._id ? [res._id] : [];
-    },
-
     async _saveGroupAssignments(group, adverts) {
         const session = await mongoose.startSession();
 
@@ -183,7 +121,11 @@ export default {
                 await SheetsService.saveWorksheet(worksheet);
                 savedToWorksheet = true;
 
-                const groupStatSaved = await this._saveGroupStat(group, session);
+               /* if(group.name === 'group3') {
+                    throw new Error('Hi hi');
+                }*/
+
+                const groupStatSaved = await StatsService.saveGroupStat(group, session);
                 this._checkIfSaveToDB(1, groupStatSaved.length, `${group.name} stat`);
 
                 await StatRepository.saveGroupAssignStat(group.name, savedAdverts.length, {session});
@@ -192,7 +134,7 @@ export default {
             });
         } catch (e) {
             if(savedToWorksheet) {
-                await SheetsService.undoSaveWorksheet(PhoneList, group.name, added);
+                await SheetsService.undoSaveAdvertsToWorksheet(PhoneList, group.name, added);
             }
 
             logger.error(`Error while save group assignments: ${e.message}`);
@@ -225,7 +167,7 @@ export default {
         });
         const sheets = google.sheets({version: 'v4', auth});
         sheets.spreadsheets.values.batchUpdate({
-            spreadsheetId: config.sheets.phone_list.id,
+            spreadsheetId: getConfigValue('sheets.phone_list.id', false),
             requestBody: {
                 requests:[{
                     autoFill: {
@@ -235,7 +177,7 @@ export default {
                             "dimension": "ROWS",
                             "fillLength": 10,
                             "source": {
-                                "sheetId": config.sheets.phone_list.worksheets.group1,
+                                "sheetId": getConfigValue('sheets.phone_list.worksheets.group1', false),
                                 start_row_index: 0,
                                 end_row_index: 1,
                                 start_column_index: 4,

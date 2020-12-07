@@ -6,13 +6,13 @@ import helloRoute from './routes/hello';
 import DB from "./boot/db";
 import dotenv from 'dotenv';
 import cron from './boot/cron';
-import rc from './crons/assign-adverts';
-import ad from './crons/phone-checks';
+import tmp from './crons/update-stats';
 
 dotenv.load();
 const app = express();
 
 DB.connect().then(() => {
+  //tmp.execute();
   cron.start();
 })
 app.use(bodyParser.json());

@@ -3,18 +3,19 @@ import logger from '../utils/logger';
 
 import GroupDividerService from '../services/group-devider';
 import AdvertListService from '../services/adverts-list';
+import StatsService from '../services/stats';
 
 export default {
     async execute() {
         try {
-            const stats = await AdvertListService.getGroupStat();
+            const stat = await StatsService.getGroupStat();
 
-            if(_.isEmpty(stats)) {
+            if(_.isEmpty(stat)) {
                 logger.warning(`AssignAdverts cron: Not found group stat`);
                 return;
             }
 
-            const {groupsTotal, groups} = stats;
+            const groupsTotal = await stat.getGroupsTotal();
 
             if(!groupsTotal.demand) {
                 logger.warning(`AssignAdverts cron: There isn't demand`);
@@ -27,13 +28,13 @@ export default {
                 return;
             }
 
-            const assignments = GroupDividerService.assignToGroups(adverts, groups, groupsTotal);
+            const assignments = GroupDividerService.assignToGroups(adverts, stat.groups, groupsTotal);
 
             if(_.isEmpty(assignments)) {
                 return;
             }
 
-            await AdvertListService.saveAssignments(assignments, groups);
+            await AdvertListService.saveAssignments(assignments, stat.groups);
         } catch (e) {
             logger.error(`Error while running AssignAdverts cron: ${e.message}`, e);
         }

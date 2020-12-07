@@ -7,21 +7,39 @@ export default {
     url: process.env.DB_URL || 'mongodb+srv://full-cron-user:hCXmJVqjyqtuOYRk@phone-cluster.0zlrx.mongodb.net/olx?retryWrites=true&w=majority'
   },
 
-  category_url: 'https://www.olx.ua/uk/zhivotnye/sobaki/khmelnitskiy/',
-  maxAdvPerGroups: 50,
-  groups: 9,
+  logs_db: {
+    url: 'mongodb+srv://full-cron-user:hCXmJVqjyqtuOYRk@phone-numbers.wurpz.mongodb.net/olx?retryWrites=true&w=majority',
+    collection: 'logs'
+  },
+
+  category_url: 'https://www.olx.ua/uk/zhivotnye/selskohozyaystvennye-zhivotnye/khmelnitskiy/',
+  max_adv_per_groups: 50,
+  group: 9,
+  group_demands: {
+      group1: 10,
+      group2: 10,
+      group3: 10,
+      group4: 10,
+      group5: 10,
+      group6: 10,
+      group7: 10,
+      group8: 10,
+      group9: 10,
+  },
   check_numbers_save_key: 'Західний',
+
+  stat_hours_formula: `=IF(MOD(HOUR(B:row);'Статистика'!$B$6) = 0; 'Статистика'!$B$6*FLOOR(HOUR(B:row)/'Статистика'!$B$6) & ":00 - " & 'Статистика'!$B$6*FLOOR(HOUR(B:row)/'Статистика'!$B$6+1); 'Статистика'!$B$6*FLOOR(HOUR(B:row)/'Статистика'!$B$6) & ":00 - " & 'Статистика'!$B$6*FLOOR(HOUR(B:row)/'Статистика'!$B$6+1)) & ":00"`,
 
   crawler_api: {
     hosts: process.env.CRAWLER_API_HOST
         ? process.env.CRAWLER_API_HOST.split(';')
         : ['http://46.63.123.61:3031'],
-    runUrl: 'download',
+    run_url: 'download',
     collection_name: 'adverts'
   },
 
     cron_schedules: {
-        get_group_stats: CRON_SCHEDULES[0] || '0 * * * *',
+        update_stats: CRON_SCHEDULES[0] || '*/15 * * * *',
         run_crawler: CRON_SCHEDULES[1] || '*/5 * * * *',
         phone_checks: CRON_SCHEDULES[2] || '5,15,25,35,45,55 * * * *',
         assign_adverts: CRON_SCHEDULES[3] || '*/10 * * * *',
@@ -46,14 +64,15 @@ export default {
           worksheets: {
               main: 1085949262
           },
-          range: 'A1:C20000'
+          range: 'A1:C20000',
+          phone_range: 'A1:A20000'
       },
       phone_list: {
           id: '1dT70wa_35lm8hfBAkMLb_I1HWJ5cJVDfkMvI-0ZzSZY',
           worksheets: {
-              main: {
-                  id: 0,
-                  range: 'A1:I3'
+              stat: {
+                  id: 1643776889,
+                  range: 'A1:I174'
               },
               group1: 660317970,
               group2: 640437545,
@@ -77,14 +96,15 @@ export default {
         main: 'Аркуш1',
         test: 1085949262
       },
-      range: 'A2:C20000'
+      range: 'A2:C20000',
+      phone_range: 'A1:A20000'
     },
     phone_list: {
       id: '1JwuoRmHlo81hcAltcpOgwZB1npUc5an7q0E3gs7g41g',
       worksheets: {
-          main: {
+          stat: {
               id: 0,
-              range: 'A1:I3'
+              range: 'A1:I174'
           },
           group1: 660317970,
           group2: 640437545,

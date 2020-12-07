@@ -1,48 +1,49 @@
 import axios from 'axios';
 import moment from 'moment';
 import logger from '../utils/logger';
-import config from "../config";
 
 import StatRepository from "../repositories/stat";
+import {getConfigValues} from "../utils";
 
 export default {
     async runCrawler(countAdv) {
-        const availableHost = await this.pingCrawlerAPIs();
+        const [olxUrl, crawlerApi] = await getConfigValues(['category_url', 'crawler_api'])
+
+        const availableHost = await this.pingCrawlerAPIs(crawlerApi.hosts);
         if(!availableHost) {
             return false;
         }
 
         const data = {
-            olxUrl: config.category_url,
+            olxUrl,
             max: countAdv,
-            collection: config.crawler_api.collection_name
+            collection: crawlerApi.collection_name
         }
 
         let res;
         let startAt = moment();
         try {
-            logger.info(`Run crawler (max=${countAdv})`, data);
+            logger.info(`Run crawler (max=${countAdv})`, 'run-crawler', data);
 
             res = await axios({
                 method: 'post',
-                url: `${availableHost}/${config.crawler_api.runUrl}`,
+                url: `${availableHost}/${crawlerApi.run_url}`,
                 data: data,
                 headers: {'Content-Type': 'application/json'}
             });
 
-            logger.info(`Crawler executed (status=${res.status}, adv=${res.data.length - 1})`);
+            logger.info(`Crawler executed (status=${res.status}, adv=${res.data.length - 1})`, 'run-crawler');
         } catch (e) {
-            logger.error(`Crawler failed: ${e.message}`);
-
+            logger.error(`Crawler failed: ${e.message}`, 'run-crawler', e);
         } finally {
             await this.saveStat(res, startAt);
         }
     },
 
-    async pingCrawlerAPIs() {
+    async pingCrawlerAPIs(hosts) {
         try {
             const promises = [];
-            for(let host of config.crawler_api.hosts) {
+            for(let host of hosts) {
                 promises.push(axios.get(host));
             }
 
@@ -51,18 +52,18 @@ export default {
             let availableHost = null;
             for(let [index, res] of results.entries()) {
                 if(res && res.status === 200) {
-                    availableHost = config.crawler_api.hosts[index];
+                    availableHost = hosts[index];
                     break;
                 }
             }
 
             if(!availableHost) {
-                logger.warning(`Ping crawler API failed (status!=200)`);
+                logger.warning(`Ping crawler API failed (status!=200)`, 'run-crawler');
             }
 
             return availableHost;
         } catch (e) {
-            logger.warning(`Ping crawler API failed: ${e.message}`, e);
+            logger.warning(`Ping crawler API failed: ${e.message}`, 'run-crawler', e);
             return false;
         }
     },

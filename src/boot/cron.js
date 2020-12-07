@@ -1,42 +1,40 @@
 import cron from 'node-cron';
 import logger from '../utils/logger';
+import {getConfigValue} from "../utils";
 
 import RunCrawler from '../crons/run-crawlers';
-import GetGroupStats from '../crons/get-group-stats';
+import UpdateStats from '../crons/update-stats';
 import AssignAdverts from '../crons/assign-adverts';
 import PhoneChecks from '../crons/phone-checks';
-import config from "../config";
 
 export default {
-    start() {
-        cron.schedule(config.cron_schedules.get_group_stats, async () => {
-            logger.setLabel('get-group-stats');
+    async start() {
+        const cronSchedules = await getConfigValue('cron_schedules');
 
-            logger.info(`***** Start get-group-stats cron (${config.cron_schedules.get_group_stats})`);
-            await GetGroupStats.execute();
-            logger.info(`***** End get-group-stats cron`);
+        cron.schedule(cronSchedules.update_stats, async () => {
+            logger.info(`***** Start update-stats cron (${cronSchedules.get_group_stats})`, 'update-stats');
+            await UpdateStats.execute();
+            logger.info(`***** End update-stats cron`, 'update-stats');
         });
 
-        cron.schedule(config.cron_schedules.run_crawler, async () => {
-            logger.setLabel('run-crawler');
-
-            logger.info(`***** Start run-crawler cron (${config.cron_schedules.run_crawler})`);
+        cron.schedule(cronSchedules.run_crawler, async () => {
+            logger.info(`***** Start run-crawler cron (${cronSchedules.run_crawler})`, 'run-crawler');
             await RunCrawler.execute();
-            logger.info(`***** End run-crawler cron`);
+            logger.info(`***** End run-crawler cron`, 'run-crawler');
         });
 
-        cron.schedule(config.cron_schedules.phone_checks, async () => {
+        cron.schedule(cronSchedules.phone_checks, async () => {
             logger.setLabel('phone-checks');
 
-            logger.info(`***** Start phone-checks cron (${config.cron_schedules.phone_checks})`);
+            logger.info(`***** Start phone-checks cron (${cronSchedules.phone_checks})`);
             await PhoneChecks.execute();
             logger.info(`***** End phone-checks cron`);
         });
 
-        cron.schedule(config.cron_schedules.assign_adverts, async () => {
+        cron.schedule(cronSchedules.assign_adverts, async () => {
             logger.setLabel('assign-adverts');
 
-            logger.info(`***** Start assign-adverts cron (${config.cron_schedules.assign_adverts})`);
+            logger.info(`***** Start assign-adverts cron (${cronSchedules.assign_adverts})`);
             await AssignAdverts.execute();
             logger.info(`***** End assign-adverts cron`);
         });
