@@ -1,6 +1,6 @@
 import {Schema, model} from 'mongoose';
 import moment from "moment";
-import {getConfigValue} from "../utils";
+import {getConfigValue, parsePeriodString} from "../utils";
 
 const GroupStatSchema = new Schema({
   name: {

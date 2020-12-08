@@ -1,6 +1,4 @@
 import {Schema, model} from 'mongoose';
-import moment from "moment";
-import {parsePeriodString, getConfigValue} from "../utils";
 
 const ConfigSchema = new Schema({
   key: {
