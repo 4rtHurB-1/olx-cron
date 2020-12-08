@@ -53,12 +53,17 @@ export function detectGenderByName(name) {
   }
 }
 
+export function parsePeriodString(string) {
+	const period = string.split(' ');
+	return {value: period[0], part: period[1]};
+}
+
 const getSplittedKey = (key) => {
   let multiKey = key.split('.');
   let singleKey = multiKey.shift();
 
   return {singleKey, multiKey};
-}
+};
 
 const getValueFromConf = (key, dbConf, config) => {
   let conf = dbConf ? dbConf : config;
@@ -70,7 +75,7 @@ const getValueFromConf = (key, dbConf, config) => {
   }
 
   return conf;
-}
+};
 
 export function getConfigValue(key, db = true) {
   key = getSplittedKey(key);

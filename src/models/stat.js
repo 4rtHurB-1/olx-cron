@@ -21,7 +21,7 @@ GroupStatSchema.methods.getCurrentDemand = function() {
       resolve(maxDemand - total)
     })
   });
-}
+};
 
 GroupStatSchema.methods.getTotalDemand = function() {
   const total = this.total;
@@ -30,7 +30,7 @@ GroupStatSchema.methods.getTotalDemand = function() {
       resolve(maxDemand)
     })
   });
-}
+};
 
 GroupStatSchema.methods.getFillPercentage = function() {
   const total = this.total;
@@ -39,7 +39,7 @@ GroupStatSchema.methods.getFillPercentage = function() {
       resolve(total / demand * 100)
     })
   });
-}
+};
 
 const assignSchemaObj = {};
 for(let g = 1; g <= 9; g++) {
@@ -93,7 +93,7 @@ StatSchema.methods.getGroupsTotal = function() {
     const res = {
       total: 0,
       demand: 0,
-    }
+    };
 
     for(let group of this.groups) {
       res.total += group.total;
@@ -102,7 +102,7 @@ StatSchema.methods.getGroupsTotal = function() {
 
     resolve(res);
   });
-}
+};
 
 StatSchema.virtual('isExpire').get(function() {
   const {part, value} = parsePeriodString(this.period);

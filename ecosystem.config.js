@@ -1,7 +1,6 @@
 module.exports = {
   apps : [{
       "name": "olx-cron",
-      "cwd": "/home/arthurb/workspace/olx-cron",
       "args": [
           "build/App.bundle.js"
       ],
@@ -13,8 +12,6 @@ module.exports = {
       "node_args": [],
       "exec_interpreter": "none",
       "exec_mode": "fork",
-      "error_file": "/logs/err.log",
-      "out_file": "/logs/out.log",
-      "log_file": "/logs/combined.log"
+      "log_file": "logs.log"
   }],
 };
