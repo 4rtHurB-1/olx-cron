@@ -1,13 +1,14 @@
 import axios from 'axios';
 import moment from 'moment';
 import logger from '../utils/logger';
-
-import StatRepository from "../repositories/stat";
 import {getConfigValues} from "../utils";
+
+import StatsService from "../services/stats";
+import Events from '../events';
 
 export default {
     async runCrawler(countAdv) {
-        const [olxUrl, crawlerApi] = await getConfigValues(['category_url', 'crawler_api'])
+        const [olxUrls, crawlerApi] = await getConfigValues(['category_urls', 'crawler_api'])
 
         const availableHost = await this.pingCrawlerAPIs(crawlerApi.hosts);
         if(!availableHost) {
@@ -15,7 +16,7 @@ export default {
         }
 
         const data = {
-            olxUrl,
+            olxUrl: olxUrls[Math.floor((Math.random() * 100) + 1) % olxUrls.length],
             max: countAdv,
             collection: crawlerApi.collection_name
         }
@@ -37,6 +38,8 @@ export default {
             logger.error(`Crawler failed: ${e.message}`, 'run-crawler', e);
         } finally {
             await this.saveStat(res, startAt);
+
+            Events.emit('crawler.execute', res.data.length - 1);
         }
     },
 
@@ -80,6 +83,6 @@ export default {
             }
         }
 
-        await StatRepository.saveCrawlerStat(isSuccess, stat);
+        await StatsService.saveCrawlerStat(isSuccess, stat);
     }
 }

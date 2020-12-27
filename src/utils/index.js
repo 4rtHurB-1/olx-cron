@@ -1,6 +1,8 @@
+import moment from 'moment';
 import genderDetection from 'gender-detection';
 import {transliterate} from 'inflected';
-import config from '../config';
+import allConfig from '../config';
+const config = allConfig[process.env.ENV || 'prod'];
 
 import ConfigRepository from '../repositories/config';
 
@@ -12,6 +14,12 @@ export function correctPhoneFormat(phone) {
   const UACodeRegExp = /^380/g;
   if(UACodeRegExp.test(phone)) {
     phone = phone.replace(/^38/g, '');
+  }
+
+  // Replace wrong format (like 8098***)
+  const wrongFormatRegExp = /^80\d{9}/g;
+  if(wrongFormatRegExp.test(phone)) {
+    phone = phone.replace('8', '');
   }
 
   // Add 0 to start of phone (98*** to 098***)
@@ -56,6 +64,18 @@ export function detectGenderByName(name) {
 export function parsePeriodString(string) {
 	const period = string.split(' ');
 	return {value: period[0], part: period[1]};
+}
+
+export function getNextDateByDayOfWeek(dayOfWeek) {
+  dayOfWeek = parseInt(dayOfWeek, 10);
+
+  let date = moment().utc();
+  if(date.isoWeekday() > dayOfWeek) {
+    date = moment().utc().isoWeek(date.isoWeek() + 1);
+  }
+
+  date.isoWeekday(dayOfWeek);
+  return date.startOf('day');
 }
 
 const getSplittedKey = (key) => {
@@ -113,6 +133,14 @@ export async function getConfigValues(keys, db = true) {
   }
 
   return values;
+}
+
+export function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export function roundToPrecision(subject, precision) {
+  return +((+subject).toFixed(precision));
 }
 
 export const urlRegExp =

@@ -8,7 +8,7 @@ export default {
         try {
             const isNewStat = moment().minutes() === 0;
 
-            const stat = await StatsService.getGroupedActualStat();
+            const stat = await StatsService.getActualStat();
             await StatsService.saveStatToWorksheet(stat, isNewStat);
 
         }  catch (e) {

@@ -1,161 +1,95 @@
-import moment from 'moment';
 import _ from 'lodash';
+import {getConfigValue} from "../utils";
 
 import Stat from "../models/stat";
 
 export default {
-    update(filter, doc, options) {
-        let query = Stat.updateMany(filter, {$set :doc});
+    get emptyCrawlerStat() {
+        return {
+            runs: 0,
+            failed: 0,
+            adverts: 0,
+            avgMaxAdverts: 0,
+            avgTimeExecution: 0
+        };
+    },
 
-        if(options.session) {
+    get emptyCheckStat() {
+        return {
+            uniq: 0,
+            total: 0,
+        };
+    },
+
+    get emptyAssignStat() {
+        return {
+            total: 0,
+            groups: {}
+        };
+    },
+
+    get emptyGroupStat() {
+        return [];
+    },
+
+    update(filter, doc, options) {
+        let query = Stat.updateMany(filter, {$set: doc});
+
+        if (options.session) {
             query = query.session(options.session);
         }
 
         return query.exec();
     },
 
-    async createStat(stat, options = {}) {
-        await this.update({type: stat.type, actual: true}, {actual: false}, options);
+    async createActualStat(stat, options = {}) {
+        await this.update({actual: true}, {actual: false}, options);
 
         return Stat.create([{
-            ...stat,
+            period: stat.period,
+            groups: stat.groups || this.emptyGroupStat,
+            crawler: stat.crawler || this.emptyCrawlerStat,
+            assign: stat.assign || this.emptyAssignStat,
+            check: stat.check || this.emptyCheckStat,
             actual: true,
         }], options);
     },
 
-    saveStat(stat, options = {}) {
-        if(stat._id && !stat.isExpire) {
-            return stat.save(options);
+    updateActualStat(stat, options = {}) {
+        return stat.save(options);
+    },
+
+    updateOrCreateActualStat(stat, options = {}) {
+        if (stat._id && !stat.isExpire) {
+            return this.updateActualStat(stat);
         } else {
-            return this.createStat({
-                type: stat.type,
-                period: stat.period,
-                groups: stat.groups,
-                crawler: stat.crawler,
-                assign: stat.assign,
-                check: stat.check,
-            }, options);
+            return this.createActualStat({period: stat.period}, options);
         }
     },
 
-    async saveCrawlerStat(success, data) {
-        let stat = await this.getActualStat('crawler');
-
-        if(_.isEmpty(stat)) {
-            stat = {
-                type: 'crawler',
-                period: '1 hour',
-                crawler: {
-                    runs: 0,
-                    failed: 0,
-                    adverts: 0,
-                    avgMaxAdverts: 0,
-                    avgTimeExecution: 0
-                }
+    async getOrCreateActualStat(createStat = {period: '1 hour'}) {
+        const stat = await this.getActualStat();
+        if (!stat || stat.isExpire) {
+            if(_.isEmpty(createStat)) {
+                createStat = {period: await getConfigValue('stat_period')};
             }
-        }
 
-        if(success) {
-            stat.crawler.runs++;
-            stat.crawler.adverts += data.adverts;
-            //stat.crawler.avgMaxAdverts = (stat.crawler.avgMaxAdverts + data.maxAdverts) / stat.crawler.runs;
-            stat.crawler.avgTimeExecution = (stat.crawler.avgTimeExecution + data.timeExecution) / stat.crawler.runs;
-        } else {
-            stat.crawler.failed++;
-        }
+            await this.createActualStat(createStat);
 
-        await this.saveStat(stat);
-    },
-
-    async saveGroupAssignStat(groupName, adverts, options) {
-        let stat = await this.getActualStat('assign');
-
-        if(_.isEmpty(stat)) {
-            stat = {
-                type: 'assign',
-                period: '1 hour',
-                assign: {
-                    total: 0,
-                    groups: {}
-                }
-            }
-        }
-
-        stat.assign.total += adverts;
-        if(!stat.assign.groups[groupName]) {
-            stat.assign.groups[groupName] = adverts;
-        } else {
-            stat.assign.groups[groupName] += adverts;
-        }
-
-        await this.saveStat(stat, options);
-    },
-
-    async saveCheckStat(total, uniq, options = {}) {
-        let stat = await this.getActualStat('check');
-
-        if(_.isEmpty(stat)) {
-            stat = {
-                type: 'check',
-                period: '1 hour',
-                check: {
-                    uniq: 0,
-                    total: 0,
-                }
-            }
-        }
-
-        stat.check.uniq += uniq;
-        stat.check.total += total;
-
-        await this.saveStat(stat, options);
-    },
-
-    async getActualStat(type) {
-        const stats = await Stat
-            .find({
-                type,
-                actual: true,
-                created_at: {
-                    $gte: moment().startOf('day').toISOString()
-                }
-            })
-            .sort({created_at: 'desc'})
-            .limit(1);
-
-        return stats ? stats[0] : null;
-    },
-
-    async getGroupStat() {
-        const stat = await this.getActualStat('group');
-
-        if(!stat || stat.isExpire) {
-            await this.createStat({
-                type: 'group',
-                period: '1 hour'
-            });
-
-            return this.getActualStat('group');
+            return this.getActualStat();
         }
 
         return stat;
     },
 
-    async getAll() {
-        return Stat
+    async getActualStat() {
+        const stats = await Stat
             .find({
-                created_at: {
-                    $gte: moment().startOf('day').toISOString()
-                }
+                actual: true
             })
-            .limit(10);
-    },
+            .sort({created_at: 'desc'})
+            .limit(1);
 
-    getActual() {
-        return Stat
-            .find({
-                actual: true,
-            })
-            .limit(5);
+        return stats ? stats[0] : null;
     }
 };

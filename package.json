@@ -23,8 +23,8 @@
     "webpack-node-externals": "^1.6.0"
   },
   "dependencies": {
-    "babel-polyfill": "^6.26.0",
     "axios": "^0.21.0",
+    "babel-polyfill": "^6.26.0",
     "babel-preset-stage-2": "^6.24.1",
     "body-parser": "^1.18.2",
     "detect-gender": "^1.0.0",
@@ -34,12 +34,14 @@
     "google-spreadsheet": "^3.0.13",
     "googleapis": "^39.2.0",
     "inflected": "^2.1.0",
+    "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.20",
     "moment": "^2.29.1",
     "mongodb": "^3.6.3",
     "mongoose": "^5.10.13",
     "node-cron": "^2.0.3",
     "winston": "^3.3.3",
-    "winston-mongodb": "^5.0.5"
+    "winston-mongodb": "^5.0.5",
+    "winston-telegram": "^2.3.2"
   }
 }

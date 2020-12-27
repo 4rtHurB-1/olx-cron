@@ -1,18 +1,21 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import logger from './utils/logger';
-
+import {getConfigValue} from "./utils";
 import helloRoute from './routes/hello';
 import DB from "./boot/db";
-import dotenv from 'dotenv';
 import cron from './boot/cron';
-import tmp from './crons/update-stats';
+import tmp from './crons/assign-adverts';
+import tmp1 from './crons/phone-checks';
+import tmp2 from './crons/run-crawlers';
 
-dotenv.load();
 const app = express();
 
-DB.connect().then(() => {
-  //tmp.execute();
+DB.connect().then(async () => {
+  //tmp2.execute();
+  /*tmp1.execute().then(() => {
+    tmp.execute();
+  })*/
   cron.start();
 })
 app.use(bodyParser.json());
@@ -22,8 +25,8 @@ app.use('/', helloRoute);
 
 const PORT = process.env.PORT || 3030;
 app.listen(PORT , () => {
-  if(process.env.TEST_SHEETS) {
-    logger.info(`Test sheets environment enabled`);
+  if(process.env.ENV) {
+    logger.info(`${process.env.ENV.toUpperCase()} environment enabled`);
   }
 
   logger.info('Server (olx-cron) listening on port ' + PORT, {metadata:{port: PORT}});

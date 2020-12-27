@@ -10,148 +10,208 @@ import SheetService from "./sheets-service";
 const worksheetName = 'stat';
 
 export default {
-    firstRowNumber: 6,
-    lastRowNumber: 174,
+    firstRowNumber: 12,
+    lastRowNumber: 179,
 
-    get totalRowLength() {
-        return this.lastRowNumber - this.firstRowNumber;
-    },
-
-    parseCrawlerStat(stat) {
+    get emptyCrawlerStat() {
         return {
-            runs: stat.crawler.runs,
-            fails: stat.crawler.failed,
-            parsed: stat.crawler.adverts,
-        }
+            type: 'crawler',
+            period: '1 hour',
+            crawler: {
+                runs: 0,
+                failed: 0,
+                adverts: 0,
+                avgMaxAdverts: 0,
+                avgTimeExecution: 0
+            }
+        };
     },
 
-    parseCheckStat(stat) {
+    get emptyCheckStat() {
         return {
-            checked: stat.check.uniq,
-            uniq: stat.check.total,
-        }
+            type: 'check',
+            period: '1 hour',
+            check: {
+                uniq: 0,
+                total: 0,
+            }
+        };
     },
 
-    parseAssignStat(stat) {
+    get emptyAssignStat() {
         return {
-            assigned: stat.assign.total
-        }
+            type: 'assign',
+            period: '1 hour',
+            assign: {
+                total: 0,
+                groups: {}
+            }
+        };
     },
 
-    parseStat(stat) {
-        switch (stat.type) {
-            case 'crawler':
-                return this.parseCrawlerStat(stat);
-            case 'check':
-                return this.parseCheckStat(stat);
-            case 'assign':
-                return this.parseAssignStat(stat);
-        }
+    get emptyGroupStat() {
+        return {
+            type: 'group',
+            period: '1 hour'
+        };
+    },
+
+    get rowLength() {
+        return this.lastRowNumber - this.firstRowNumber + 1;
+    },
+
+    get rowOffset() {
+        return this.firstRowNumber - 2;
     },
 
     toSheetRow(stat, rowNumber) {
+        const date = moment().startOf('hour').format('DD.MM.YYYY HH:mm');
         const hoursFormula = getConfigValue('stat_hours_formula', false);
 
-        return [
+        const row =  [
             hoursFormula.replace(/:row/g, rowNumber),
-            stat.date, stat.runs, stat.fails, stat.parsed, stat.checked, stat.uniq, stat.assigned
+            date,
+            stat.crawler.runs || 0,
+            stat.crawler.failed || 0,
+            stat.crawler.adverts || 0,
+            stat.check.total || 0,
+            stat.check.uniq || 0,
+            stat.assign.total || 0
         ];
+
+        for(let group of stat.groups) {
+            row.push(group.total);
+        }
+
+        return row;
     },
 
-    async getGroupedActualStat() {
-        const stats = await StatRepository.getActual();
-
-        let actualStat = {
-            date: moment().startOf('hour').format('DD.MM.YYYY HH:mm')
-        }
-
-        for(let stat of stats) {
-            actualStat = {
-                ...actualStat,
-                ...this.parseStat(stat)
-            }
-        }
-
-        return actualStat;
+    async getActualStat() {
+        return StatRepository.getActualStat();
     },
 
     async saveStatToWorksheet(stat, isNew) {
-        const rows = await SheetService.getRows(PhoneList, worksheetName, this.totalRowLength, this.firstRowNumber - 1);
+        await PhoneList.load(); // 1 req
+
+        const rows = await SheetService.getRows(PhoneList, worksheetName, this.rowLength, this.rowOffset);
 
         let rowNumber = rows.length ? rows[rows.length - 1].rowNumber : this.firstRowNumber;
-        if(isNew) {
-            if(rowNumber === this.lastRowNumber) {
-                await rows[rows.length - 1].delete();
+
+        if (isNew) {
+            if (rowNumber === this.lastRowNumber) {
+                await rows[0].delete();
             }
-        } else if(rows.length) {
+        } else if (rows.length) {
             await rows[rows.length - 1].delete();
         }
 
-        return SheetService.addRows(PhoneList, worksheetName, [this.toSheetRow(stat, rowNumber)], {raw: false});
+        return SheetService.addRows(PhoneList, worksheetName, [this.toSheetRow(stat, rowNumber)]);
     },
 
-    async loadGroupStats(groupName = null) {
-        await SheetService.loadSheet(PhoneList, worksheetName);
+    _parseGroupStat(worksheet, columnIndex) {
+        return {
+            name: `group${columnIndex}`,
+            total: parseInt(
+                SheetService.getCellValue(worksheet, 1, columnIndex)
+            ),
+            demand: parseInt(
+                SheetService.getCellValue(worksheet, 2, columnIndex)
+            )
+        }
+    },
 
-        if(groupName) {
+    async loadGroupStatFromWorksheet(groupName = null) {
+        await PhoneList.load(); // 1 req
+        const worksheet = await PhoneList.loadWorksheet(worksheetName); // 1 req
+
+        if (groupName) {
             const groupIndex = groupName.replace(/[^0-9]/g, '');
-            return {
-                name: groupName,
-                total: SheetService.getCellValue(PhoneList, worksheetName, 1, groupIndex - 1)
-            }
+            return this._parseGroupStat(worksheet, groupIndex);
         }
 
         const groupLength = 9;
         const stats = [];
-        for(let r = 0; r < 2; r++) {
-            for(let c = 0; c < groupLength; c++) {
-                let value = SheetService.getCellValue(PhoneList, worksheetName, r, c);
-                if(r === 0) {
-                    stats.push({name: `group${c+1}`});
-                } else if(r === 1) {
-                    stats[c].total = value;
-                }
-            }
+        for (let c = 1; c < groupLength + 1; c++) {
+            stats.push(this._parseGroupStat(worksheet, c));
         }
 
         return stats;
     },
 
-    async _loadGroupStat() {
-        let groupStat = await StatRepository.getGroupStat();
+    async _getGroupStat() {
+        let stat = await StatRepository.getOrCreateActualStat();
 
-        if(_.isEmpty(groupStat.groups)) {
-            groupStat.groups = await this.loadGroupStats();
-            await groupStat.save();
-            logger.info(`Get and save group stat (st=${groupStat.groups.length})`, groupStat.groups.map(s => [s.name, s.total]));
+        if (_.isEmpty(stat.groups)) {
+            stat.groups = await this.loadGroupStatFromWorksheet();
+            await StatRepository.updateActualStat(stat);
+            logger.info(`Get and save group stat (st=${stat.groups.length})`, stat.groups.map(s => [s.name, s.total]));
         }
 
-        this.groupStatLoader = null;
-        return groupStat;
+        this.groupStatGetter = null;
+
+        return stat;
     },
 
     async getGroupStat() {
-        if(!this.groupStatLoader) {
-            this.groupStatLoader = this._loadGroupStat();
+        if (!this.groupStatGetter) {
+            this.groupStatGetter = this._getGroupStat();
         }
 
-        return this.groupStatLoader;
+        return this.groupStatGetter;
     },
 
-    async saveGroupStat(group, session) {
-        let [newGroupStat, groupStat] = await Promise.all([
-            this.loadGroupStats(group.name),
-            this.getGroupStat()
+    async saveGroupStat(groupName, session) {
+        let [stat, groupStat] = await Promise.all([
+            StatRepository.getOrCreateActualStat(),
+            this.loadGroupStatFromWorksheet(groupName) // 3 req
         ]);
 
-        for(let group of groupStat.groups) {
-            if(group.name === newGroupStat.name) {
-                group.total = newGroupStat.total;
+        for (let group of stat.groups) {
+            if (group.name === groupStat.name) {
+                group.total = groupStat.total;
+                group.demand = groupStat.demand;
                 break;
             }
         }
 
-        const res = await groupStat.save({session});
+        const res = await StatRepository.updateActualStat(stat, session ? {session} : {});
         return res && res._id ? [res._id] : [];
+    },
+
+    async saveCrawlerStat(success, data) {
+        let stat = await StatRepository.getOrCreateActualStat();
+
+        if (success) {
+            stat.crawler.runs++;
+            stat.crawler.adverts += data.adverts;
+            //stat.crawler.avgMaxAdverts = (stat.crawler.avgMaxAdverts + data.maxAdverts) / stat.crawler.runs;
+            stat.crawler.avgTimeExecution = (stat.crawler.avgTimeExecution + data.timeExecution) / stat.crawler.runs;
+        } else {
+            stat.crawler.failed++;
+        }
+
+        await StatRepository.updateActualStat(stat);
+    },
+
+    async saveGroupAssignStat(groupName, adverts, options) {
+        let stat = await StatRepository.getOrCreateActualStat();
+
+        stat.assign.total += adverts;
+        if (!stat.assign.groups[groupName]) {
+            stat.assign.groups[groupName] = adverts;
+        } else {
+            stat.assign.groups[groupName] += adverts;
+        }
+
+        await StatRepository.updateActualStat(stat, options);
+    },
+
+    async saveCheckStat(total, uniq, options = {}) {
+        let stat = await StatRepository.getOrCreateActualStat();
+
+        stat.check.uniq += uniq;
+        stat.check.total += total;
+
+        await StatRepository.updateActualStat(stat, options);
     },
 }

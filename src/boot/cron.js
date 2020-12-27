@@ -12,31 +12,31 @@ export default {
         const cronSchedules = await getConfigValue('cron_schedules');
 
         cron.schedule(cronSchedules.update_stats, async () => {
-            logger.info(`***** Start update-stats cron (${cronSchedules.update_stats})`, 'update-stats');
+            logger.info(`* * * * * Start update-stats cron ${cronSchedules.update_stats}`, 'update-stats');
             await UpdateStats.execute();
-            logger.info(`***** End update-stats cron`, 'update-stats');
+            logger.info(`* * * * * End update-stats cron`, 'update-stats');
         });
 
         cron.schedule(cronSchedules.run_crawler, async () => {
-            logger.info(`***** Start run-crawler cron (${cronSchedules.run_crawler})`, 'run-crawler');
+            logger.info(`* * * * * Start run-crawler cron ${cronSchedules.run_crawler}`, 'run-crawler');
             await RunCrawler.execute();
-            logger.info(`***** End run-crawler cron`, 'run-crawler');
+            logger.info(`* * * * * End run-crawler cron`, 'run-crawler');
         });
 
         cron.schedule(cronSchedules.phone_checks, async () => {
             logger.setLabel('phone-checks');
 
-            logger.info(`***** Start phone-checks cron (${cronSchedules.phone_checks})`);
+            logger.info(`* * * * * Start phone-checks cron ${cronSchedules.phone_checks}`);
             await PhoneChecks.execute();
-            logger.info(`***** End phone-checks cron`);
+            logger.info(`* * * * * End phone-checks cron`);
         });
 
         cron.schedule(cronSchedules.assign_adverts, async () => {
             logger.setLabel('assign-adverts');
 
-            logger.info(`***** Start assign-adverts cron (${cronSchedules.assign_adverts})`);
+            logger.info(`* * * * * Start assign-adverts cron ${cronSchedules.assign_adverts}`);
             await AssignAdverts.execute();
-            logger.info(`***** End assign-adverts cron`);
+            logger.info(`* * * * * End assign-adverts cron`);
         });
     }
 }

@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import logger from "../utils/logger";
 import moment from "moment";
 import {getConfigValue} from "../utils";
@@ -6,33 +7,25 @@ import PhoneCheck from "../sheets/phone-check";
 import PhoneList from "../sheets/phone-list";
 
 export default {
-    async loadSheet(sheet, worksheet) {
-        await sheet.load();
-        if(worksheet) {
-            await sheet.loadWorksheet(worksheet);
-        }
-    },
-
-    getCellValue(sheet, worksheetName, row, column) {
-        return sheet[worksheetName].getCell(row, column).value;
+    getCellValue(worksheet, row, column) {
+        return worksheet.getCell(row, column).value;
     },
 
     async getCellsInRange(sheet, worksheetName, range) {
-        await sheet.load();
-        const worksheet = await sheet.getWorksheet(worksheetName)
+        const worksheet = sheet.getWorksheet(worksheetName)
         return worksheet.getCellsInRange(range);
     },
 
     async getRows(sheet, worksheetName, limit, offset = 0) {
-        await sheet.load();
-        const worksheet = await sheet.getWorksheet(worksheetName);
+        const worksheet = sheet.getWorksheet(worksheetName);
         return worksheet.getRows({limit, offset});
     },
 
-    async addRows(sheet, worksheetName, rows, options = {raw: true}) {
-        await sheet.load();
-        const worksheet = await sheet.getWorksheet(worksheetName);
-        return worksheet.addRows(rows, options);
+    async addRows(sheet, worksheetName, rows, options) {
+        if(rows.length) {
+            const worksheet = sheet.getWorksheet(worksheetName);
+            return worksheet.addRows(rows, options);
+        }
     },
 
     async deleteRows(rows) {
@@ -51,7 +44,7 @@ export default {
         const data = [];
         for (let adv of adverts) {
             data.push([
-                adv.phone,
+                `'${adv.phone}`, // use ' symbol for save number format *** *** ** ** at sheet
                 date,
                 key,
             ]);
@@ -82,7 +75,7 @@ export default {
     },
 
     async undoSaveAdvertsToWorksheet(sheet, worksheetName, data) {
-        const worksheet = await sheet.loadWorksheet(worksheetName);
+        const worksheet = await sheet.loadWorksheet(worksheetName); // 2 req
 
         for (let d of data) {
             if (worksheet.getCell(d.row, d.column).value == d.values[0]) {
@@ -95,11 +88,11 @@ export default {
     },
 
     async saveWorksheet(worksheet) {
-        await worksheet.saveUpdatedCells({raw: true});
+        await worksheet.saveUpdatedCells();
     },
 
     async _appendToWorksheet(sheet, worksheetName, data, position = {row: 0, column: 0}) {
-        const worksheet = await sheet.loadWorksheet(worksheetName);
+        const worksheet = await sheet.loadWorksheet(worksheetName); // 2 req
 
         const added = [];
         let rowId = this._getRowIdToAppend(worksheet, position);
@@ -162,5 +155,13 @@ export default {
         }
 
         return rowIndex;
+    },
+
+    async testAdd() {
+        const rows = await this.addRows(PhoneCheck, 'main', [[
+            `'068 011 15 74`,
+            moment().format('DD.MM.YYYY HH:mm:ss'),
+            getConfigValue('check_numbers_save_key', false),
+        ]], {raw: false});
     }
 }

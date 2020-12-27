@@ -2,32 +2,54 @@ import _ from 'lodash';
 import logger from '../utils/logger';
 
 export default {
-    getAvgAdvertsPerGroup(totalAdverts, totalAvg, groups) {
-        let groupDemand = groups.filter(d => d.total < totalAvg);
-        let avg = Math.floor(totalAdverts / groupDemand.length);
+    getAvgAdvertsPerGroup(advertsCnt, groups, totalStats) {
+        const startAdvertsCnt = advertsCnt;
 
-        if(!groupDemand.length) {
+        // Get fill percentage of total demand count
+        const demandFill = advertsCnt / totalStats.demand;
+
+        const getDemandedGroups = groups => {
+            // Find groups where demand of advert > 0
+            return groups.filter(group => group.demand > 0);
+        }
+
+        // Find groups which have demand of adverts
+        let notFilledGroups = getDemandedGroups(groups);
+
+        // Return empty when hasn't not filled groups
+        if(!notFilledGroups.length) {
             return {};
         }
 
-        while(groupDemand.length > 0 && avg > 0) {
-            for(let stat of groupDemand) {
-                const toTotalAvg = totalAvg - stat.total;
-                const countToAdd = toTotalAvg < avg ? toTotalAvg : avg;
+        for(let group of notFilledGroups) {
+            const demand = group.demand;
 
-                totalAdverts -= countToAdd;
-                stat.total += countToAdd;
-                if(!stat.new) {
-                    stat.new = 0;
-                }
-                stat.new += countToAdd;
+            console.log(
+                `tmp log [${group.name}]`,
+                `demand=${demand}`,
+                `demand-fill=${demandFill}`,
+                `add=${Math.floor(demand * demandFill)}`
+            );
+
+            // Get adverts count that can be added
+            const countToAdd = Math.floor(group.demand * demandFill);
+
+            // Decrease count of total adverts
+            advertsCnt -= countToAdd;
+            // Increase count of adverts per group
+            group.total += countToAdd;
+
+            if(!group.new) {
+                group.new = 0;
             }
 
+            // Save new added count
+            group.new += countToAdd;
+        }
 
-            groupDemand = groups.filter(d => {
-                return d.total < totalAvg
-            });
-            avg = Math.floor(totalAdverts / groupDemand.length);
+        // Return empty when new adverts count not changed
+        if(startAdvertsCnt === advertsCnt) {
+            return {};
         }
 
         return groups;
@@ -58,25 +80,25 @@ export default {
             }
         }
 
-        logger.log(Object.keys(assignments).length,`Get assignments (ass=${Object.keys(assignments).length})`, assignments);
+        //logger.log(Object.keys(assignments).length,`Get assignments (ass=${Object.keys(assignments).length})`, assignments);
         return assignments;
     },
 
     assignToGroups(adverts, groups, totalStats) {
-        const totalAdverts = adverts.length + totalStats.total;
-        const totalAvg =  Math.floor(totalAdverts / groups.length);
+        const oldGroupStatsLog = groups.map(g => [g.name, g.total, g.demand]);
 
-        logger.info(`Start calculate avg per groups (new-adv=${adverts.length}, all-adv=${totalAdverts}, avg=${totalAvg})`, groups.map(g => [g.name, g.total]));
-
-        const updatedStats = this.getAvgAdvertsPerGroup(totalAdverts, totalAvg, groups);
+        const updatedStats = this.getAvgAdvertsPerGroup(adverts.length, groups, totalStats);
 
         if(_.isEmpty(updatedStats)) {
-            logger.warning(`Hasn't demand for assignments`);
+            logger.warning(`Calculate adverts: Hasn't demand for assignments`);
             return {};
         }
 
-        logger.info(`Calculate avg per groups (adv=${totalAdverts})`, updatedStats.map(g => [g.name, g.total]));
+        logger.info(`Calculated adverts to assign (new-adv=${adverts.length}, tot-dem=${totalStats.demand})`, {
+            old: oldGroupStatsLog,
+            new: groups.map(g => [g.name, g.total, g.demand])
+        });
 
-        return this.assignAdvertsToGroups(adverts, updatedStats);
+        return this.assignAdvertsToGroups(adverts, updatedStats.filter(g => g.new));
     }
 }

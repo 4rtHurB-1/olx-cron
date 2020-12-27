@@ -15,7 +15,7 @@ export default {
         try {
             const checkNumbers = await this.getCheckNumberList();
 
-            logger.info(`Start uniq and format adverts (adv=${adverts.length})`);
+            //logger.info(`Start uniq and format adverts (adv=${adverts.length})`, checkNumbers);
 
             const uniq = [];
             for(let i = 0; i < adverts.length; i++) {
@@ -30,7 +30,7 @@ export default {
                 }
             }
 
-            logger.info(`End uniq and format adverts (adv=${uniq.length})`, uniq);
+            logger.info(`Uniq and format adverts (adv=${adverts.length}, uniq=${uniq.length})`);
             return uniq;
         } catch (e) {
             logger.error(e.message, e);
@@ -38,9 +38,11 @@ export default {
     },
 
     async getCheckNumberList() {
-        logger.info(`Start load check number list`);
-        const range = getConfigValue('sheets.phone_check.phone_range', false);
-        const numberArrays = await SheetsService.getCellsInRange(PhoneCheck, worksheetName, range);
+        //logger.info(`Start load check number list`);
+
+        await PhoneCheck.load();
+
+        const numberArrays = await PhoneCheck.getCellsInRange(worksheetName);
 
         const numbers = [];
         let empty = 0;

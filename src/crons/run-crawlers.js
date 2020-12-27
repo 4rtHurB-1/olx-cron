@@ -2,17 +2,19 @@ import logger from '../utils/logger';
 import AdvertListService from '../services/adverts-list';
 import CrawlerRunnerService from '../services/crawler-runner';
 
+const advertsCntPerRun = 30;
+
 export default {
     async execute() {
         try {
-            const demand = await AdvertListService.getAdvertDemand();
+            const demand = await AdvertListService.getCrawlerDemand();
+            logger.log(demand, `Crawler demand (cnt=${demand})`, 'run-crawler');
 
             if(!demand) {
-                logger.warning(`RunCrawler cron: There isn't demand`, 'run-crawler');
                 return;
             }
 
-            await CrawlerRunnerService.runCrawler(demand > 30 ? 30 : demand);
+            await CrawlerRunnerService.runCrawler(advertsCntPerRun);
         } catch (e) {
             logger.error(`Error while running RunCrawler cron: ${e.message}`, 'run-crawler', e);
         }

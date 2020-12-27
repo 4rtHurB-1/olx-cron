@@ -4,6 +4,10 @@ const AdvertSchema = new Schema({
   phone: String,
   url: String,
   username: String,
+  pre_checked: {
+    type: Boolean,
+    default: false
+  },
   checked: {
     type: Boolean,
     default: false

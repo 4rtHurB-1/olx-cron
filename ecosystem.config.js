@@ -6,7 +6,7 @@ module.exports = {
       ],
       "script": "node",
       "env": {
-          "TEST_SHEETS": "true"
+          "ENV": "test"
       },
       "max_memory_restart": "200M",
       "node_args": [],

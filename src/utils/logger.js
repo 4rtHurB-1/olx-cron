@@ -1,16 +1,29 @@
 import winston from 'winston';
+const TelegramLogger = require('winston-telegram')
 require('winston-mongodb');
 import moment from 'moment';
 import {getConfigValue} from "./index";
 
 const getDbTransportParams = () => {
-  const db = getConfigValue('logs_db', false);
+  const db = getConfigValue('logs.db', false);
 
   return {
     db: db.url,
     collection: db.collection,
     decolorize: true
   };
+}
+
+const getTelTransportParams = () => {
+  const tel = getConfigValue('logs.tel', false);
+
+  return {
+    name: 'info-channel',
+    token: tel.token,
+    chatId: tel.chat_id,
+    level: 'info',
+    unique: true
+  }
 }
 
 const logger = winston.createLogger({
@@ -88,8 +101,8 @@ export default {
     });
   },
 
-  log(cond, message, meta) {
-    this._log(cond ? 'info' : 'warn', message, meta)
+  log(cond, message, ...params) {
+    this._log(cond ? 'info' : 'warn', message, params)
   },
 
   info(message, ...params) {
