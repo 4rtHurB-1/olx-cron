@@ -23,7 +23,7 @@ export default class BaseSheet {
                 await this._sheet.useServiceAccountAuth(gapiCreds);
                 await this._sheet.loadInfo(); // 1 req
             } catch (e) {
-                logger.error(e.message, e);
+                logger.error('Error while load sheet:', e.message, e);
             }
         }
     }
@@ -78,4 +78,20 @@ export default class BaseSheet {
         return worksheet.getCellsInRange(range || this.getConfigRange(worksheetName));
     }
 
+    getCellValue(worksheetName, row, column) {
+        const worksheet = this.getWorksheet(worksheetName);
+        return worksheet.getCell(row, column).value;
+    }
+
+    async getRows(worksheetName, limit, offset = 0) {
+        const worksheet = this.getWorksheet(worksheetName);
+        return worksheet.getRows({limit, offset});
+    }
+
+    async addRows(worksheetName, rows, options) {
+        if(rows.length) {
+            const worksheet = this.getWorksheet(worksheetName);
+            return worksheet.addRows(rows, options);
+        }
+    }
 }

@@ -8,7 +8,7 @@ export default {
     async execute() {
         try {
             const demand = await AdvertListService.getCrawlerDemand();
-            logger.log(demand, `Crawler demand (cnt=${demand})`, 'run-crawler');
+            logger.debugOrWarn(demand, `Crawler demand (cnt=${demand})`, 'run-crawler');
 
             if(!demand) {
                 return;

@@ -19,16 +19,25 @@ export default {
             }
         },
 
+        // can be db stored
         category_urls: [
             'https://www.olx.ua/uk/zhivotnye/khmelnitskiy/',
             'https://www.olx.ua/uk/hobbi-otdyh-i-sport/khmelnitskiy/'
         ],
 
-        check_numbers_save_key: 'Західний',
+        // can be db stored
+        check_number_save: {
+            key: 'Західний',
+            ver: 'v2',
+        },
 
-        stat_hours_formula: `=IF(MOD(HOUR(B:row);'Статистика'!$A$7) = 0; 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7) & ":00 - " & 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7+1); 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7) & ":00 - " & 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7+1)) & ":00"`,
-        stat_period: '1 hour',
+        // can be db stored
+        stat: {
+            hours_formula: `=IF(MOD(HOUR(B:row);'Статистика'!$A$7) = 0; 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7) & ":00 - " & 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7+1); 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7) & ":00 - " & 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7+1)) & ":00"`,
+            period: '1 hour',
+        },
 
+        // can be db stored
         crawler_api: {
             hosts: process.env.CRAWLER_API_HOST
                 ? process.env.CRAWLER_API_HOST.split(';')
@@ -37,6 +46,7 @@ export default {
             collection_name: 'adverts'
         },
 
+        // can be db stored
         cron_schedules: {
             /*update_stats: CRON_SCHEDULES[0] || '*!/15 * * * *',
             run_crawler: CRON_SCHEDULES[1] || '15,25,50 * * * *',
@@ -68,8 +78,13 @@ export default {
                     main: {
                         id: 0,
                         range: 'A1:A21000'
+                    },
+                    new: {
+                        id: 1523355869,
+                        range: 'E3:E1000'
                     }
-                }
+                },
+                format_range: 'A:C'
             },
             phone_list: {
                 id: '1dT70wa_35lm8hfBAkMLb_I1HWJ5cJVDfkMvI-0ZzSZY',
@@ -109,16 +124,25 @@ export default {
             }
         },
 
+        // can be db stored
         category_urls: [
             'https://www.olx.ua/uk/zhivotnye/khmelnitskiy/',
             'https://www.olx.ua/uk/hobbi-otdyh-i-sport/khmelnitskiy/'
         ],
 
-        check_numbers_save_key: 'Західний ТЕСТ',
+        // can be db stored
+        check_number_save: {
+            key: 'Західний ТЕСТ',
+            ver: 'v1',
+        },
 
-        stat_hours_formula: `=IF(MOD(HOUR(B:row);'Статистика'!$A$7) = 0; 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7) & ":00 - " & 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7+1); 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7) & ":00 - " & 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7+1)) & ":00"`,
-        stat_period: '1 hour',
+        // can be db stored
+        stat: {
+            hours_formula: `=IF(MOD(HOUR(B:row);'Статистика'!$A$7) = 0; 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7) & ":00 - " & 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7+1); 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7) & ":00 - " & 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7+1)) & ":00"`,
+            period: '1 hour',
+        },
 
+        // can be db stored
         crawler_api: {
             hosts: process.env.CRAWLER_API_HOST
                 ? process.env.CRAWLER_API_HOST.split(';')
@@ -127,6 +151,7 @@ export default {
             collection_name: 'adverts'
         },
 
+        // can be db stored
         cron_schedules: {
             update_stats: CRON_SCHEDULES[0] || '*/15 * * * *',
             run_crawler: CRON_SCHEDULES[1] || '*/10 * * * *',
@@ -148,7 +173,22 @@ export default {
         },
 
         sheets: {
+            // new
             phone_check: {
+                id: '1Pet6pU24iB5CCCpH6LYWJFiYhPGcNxBAB4HxU6WO3Ww',
+                worksheets: {
+                    main: {
+                        id: 0,
+                        range: 'A1:A21000'
+                    },
+                    new: {
+                        id: 1523355869,
+                        range: 'E3:E1000'
+                    }
+                },
+                format_range: 'A:C'
+            },
+           /* phone_check: {
                 id: '1sRoWLcIr7Y85-3o0MZXWbmKbptF97texFyK1QyZNzqQ',
                 worksheets: {
                     main: {
@@ -156,7 +196,7 @@ export default {
                         range: 'A1:A21000'
                     }
                 }
-            },
+            },*/
             phone_list: {
                 id: '1sRoWLcIr7Y85-3o0MZXWbmKbptF97texFyK1QyZNzqQ',
                 worksheets: {
@@ -176,6 +216,6 @@ export default {
                 },
                 range: 'A2:D100'
             }
-        }
+        },
     },
 }

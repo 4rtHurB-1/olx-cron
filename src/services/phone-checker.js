@@ -8,33 +8,29 @@ const worksheetName = 'main';
 
 export default {
     async getUniqAdverts(adverts) {
-        if(!Array.isArray(adverts)) {
+        if (!Array.isArray(adverts)) {
             return [];
         }
 
-        try {
-            const checkNumbers = await this.getCheckNumberList();
+        const checkNumbers = await this.getCheckNumberList();
 
-            //logger.info(`Start uniq and format adverts (adv=${adverts.length})`, checkNumbers);
+        //logger.info(`Start uniq and format adverts (adv=${adverts.length})`, checkNumbers);
 
-            const uniq = [];
-            for(let i = 0; i < adverts.length; i++) {
-                let phone = correctPhoneFormat(adverts[i].phone);
-                if(phone && !checkNumbers.includes(phone) && !uniq.find(u => u.phone === phone)) {
-                    uniq.push({
-                        phone,
-                        url: adverts[i].url,
-                        gender: await detectGenderByName(adverts[i].username),
-                        checked: true
-                    });
-                }
+        const uniq = [];
+        for (let i = 0; i < adverts.length; i++) {
+            let phone = correctPhoneFormat(adverts[i].phone);
+            if (phone && !checkNumbers.includes(phone) && !uniq.find(u => u.phone === phone)) {
+                uniq.push({
+                    phone,
+                    url: adverts[i].url,
+                    gender: await detectGenderByName(adverts[i].username),
+                    checked: true
+                });
             }
-
-            logger.info(`Uniq and format adverts (adv=${adverts.length}, uniq=${uniq.length})`);
-            return uniq;
-        } catch (e) {
-            logger.error(e.message, e);
         }
+
+        logger.info(`Uniq and format adverts (adv=${adverts.length}, uniq=${uniq.length})`);
+        return uniq;
     },
 
     async getCheckNumberList() {

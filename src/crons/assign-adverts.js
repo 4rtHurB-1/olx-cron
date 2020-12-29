@@ -9,7 +9,7 @@ export default {
     async execute() {
         try {
             const demand = await AdvertListService.getAssignDemand();
-            logger.log(demand, `Assign demand (cnt=${demand})`, 'assign-adverts');
+            logger.debugOrWarn(demand, `Assign demand (cnt=${demand})`, 'assign-adverts');
 
             if (!demand) {
                 return;

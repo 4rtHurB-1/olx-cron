@@ -42,6 +42,6 @@
     "node-cron": "^2.0.3",
     "winston": "^3.3.3",
     "winston-mongodb": "^5.0.5",
-    "winston-telegram": "^2.3.2"
+    "winston-telegram": "git+https://github.com/4rtHurB/winston-telegram.git#master"
   }
 }

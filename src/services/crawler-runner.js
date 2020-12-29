@@ -24,7 +24,7 @@ export default {
         let res;
         let startAt = moment();
         try {
-            logger.info(`Run crawler (max=${countAdv})`, 'run-crawler', data);
+            logger.info(`Run crawler (max=${countAdv})`, 'run-crawler');
 
             res = await axios({
                 method: 'post',
@@ -33,9 +33,9 @@ export default {
                 headers: {'Content-Type': 'application/json'}
             });
 
-            logger.info(`Crawler executed (status=${res.status}, adv=${res.data.length - 1})`, 'run-crawler');
+            logger.debug(`Crawler executed (adv=${res.data.length - 1}, max=${countAdv})`, 'run-crawler', data);
         } catch (e) {
-            logger.error(`Crawler failed: ${e.message}`, 'run-crawler', e);
+            logger.error(`Error while crawler execute: ${e.message}`, 'run-crawler', e);
         } finally {
             await this.saveStat(res, startAt);
 

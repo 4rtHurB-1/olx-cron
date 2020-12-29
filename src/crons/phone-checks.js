@@ -7,7 +7,7 @@ export default {
     async execute() {
         try {
             const demand = await AdvertListService.getChecksDemand();
-            logger.log(demand, `Checks demand (cnt=${demand})`, 'phone-checks');
+            logger.debugOrWarn(demand, `Checks demand (cnt=${demand})`, 'phone-checks');
 
             if (!demand) {
                 return;

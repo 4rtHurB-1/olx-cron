@@ -22,12 +22,14 @@ const getTelTransportParams = () => {
     token: tel.token,
     chatId: tel.chat_id,
     level: 'info',
-    unique: true
+    unique: true,
+    template: '{message}',
+    disableNotification: true,
+    formatMessage: (options) => options.message.split(': ')[1]
   }
 }
 
 const logger = winston.createLogger({
-  level: 'info',
   format: winston.format.combine(
       winston.format.colorize(),
       winston.format.timestamp(),
@@ -35,14 +37,10 @@ const logger = winston.createLogger({
   ),
   defaultMeta: { service: 'user-service' },
   transports: [
-    new winston.transports.Console({level: 'info'}),
+    new winston.transports.Console({level: 'debug'}),
     new winston.transports.MongoDB({
       ...getDbTransportParams(),
-      level: 'info',
-    }),
-    new winston.transports.MongoDB({
-      ...getDbTransportParams(),
-      level: 'warn',
+      level: 'debug',
     }),
     new winston.transports.MongoDB({
       ...getDbTransportParams(),
@@ -51,6 +49,22 @@ const logger = winston.createLogger({
   ],
   exitOnError: false
 });
+
+if(process.env.ENV !== 'test') {
+  logger.add(
+      new TelegramLogger({
+        ...getTelTransportParams(),
+        level: 'debug'
+      })
+  );
+
+  logger.add(
+      new TelegramLogger({
+        ...getTelTransportParams(),
+        level: 'error'
+      })
+  );
+}
 
 export default {
   labels: ['get-group-stats', 'run-crawler', 'phone-checks', 'assign-adverts'],
@@ -101,16 +115,8 @@ export default {
     });
   },
 
-  log(cond, message, ...params) {
-    this._log(cond ? 'info' : 'warn', message, params)
-  },
-
   info(message, ...params) {
     this._log('info', message, params);
-  },
-
-  debug(message, ...params) {
-    this._log('debug', message, params);
   },
 
   warning(message, ...params) {
@@ -119,5 +125,17 @@ export default {
 
   error(message, ...params) {
     this._log('error', message, params);
+  },
+
+  debug(message, ...params) {
+    this._log('debug', message, params);
+  },
+
+  debugOrWarn(cond, message, ...params) {
+    this._log(cond ? 'debug' : 'warn', message, params);
+  },
+
+  infoOrWarn(cond, message, ...params) {
+    this._log(cond ? 'info' : 'warn', message, params)
   },
 };

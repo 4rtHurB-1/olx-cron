@@ -67,11 +67,11 @@ export default {
         }
     },
 
-    async getOrCreateActualStat(createStat = {period: '1 hour'}) {
+    async getOrCreateActualStat(createStat = {}) {
         const stat = await this.getActualStat();
         if (!stat || stat.isExpire) {
             if(_.isEmpty(createStat)) {
-                createStat = {period: await getConfigValue('stat_period')};
+                createStat = {period: await getConfigValue('stat.period')};
             }
 
             await this.createActualStat(createStat);

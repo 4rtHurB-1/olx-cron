@@ -22,15 +22,6 @@ export default {
         }
 
         for(let group of notFilledGroups) {
-            const demand = group.demand;
-
-            console.log(
-                `tmp log [${group.name}]`,
-                `demand=${demand}`,
-                `demand-fill=${demandFill}`,
-                `add=${Math.floor(demand * demandFill)}`
-            );
-
             // Get adverts count that can be added
             const countToAdd = Math.floor(group.demand * demandFill);
 
@@ -94,7 +85,7 @@ export default {
             return {};
         }
 
-        logger.info(`Calculated adverts to assign (new-adv=${adverts.length}, tot-dem=${totalStats.demand})`, {
+        logger.debug(`Calculated adverts to assign (new-adv=${adverts.length}, tot-dem=${totalStats.demand})`, {
             old: oldGroupStatsLog,
             new: groups.map(g => [g.name, g.total, g.demand])
         });

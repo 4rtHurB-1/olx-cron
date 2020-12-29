@@ -64,12 +64,11 @@ export default {
         return this.firstRowNumber - 2;
     },
 
-    toSheetRow(stat, rowNumber) {
+    toSheetRow(stat, hoursFormula) {
         const date = moment().startOf('hour').format('DD.MM.YYYY HH:mm');
-        const hoursFormula = getConfigValue('stat_hours_formula', false);
 
         const row =  [
-            hoursFormula.replace(/:row/g, rowNumber),
+            hoursFormula,
             date,
             stat.crawler.runs || 0,
             stat.crawler.failed || 0,
@@ -87,13 +86,13 @@ export default {
     },
 
     async getActualStat() {
-        return StatRepository.getActualStat();
+        return StatRepository.getOrCreateActualStat();
     },
 
     async saveStatToWorksheet(stat, isNew) {
         await PhoneList.load(); // 1 req
 
-        const rows = await SheetService.getRows(PhoneList, worksheetName, this.rowLength, this.rowOffset);
+        const rows = await PhoneList.getRows(worksheetName, this.rowLength, this.rowOffset);
 
         let rowNumber = rows.length ? rows[rows.length - 1].rowNumber : this.firstRowNumber;
 
@@ -105,34 +104,37 @@ export default {
             await rows[rows.length - 1].delete();
         }
 
-        return SheetService.addRows(PhoneList, worksheetName, [this.toSheetRow(stat, rowNumber)]);
+        let hoursFormula = await getConfigValue('stat.hours_formula');
+        hoursFormula = hoursFormula.replace(/:row/g, rowNumber);
+
+        return PhoneList.addRows(worksheetName, [this.toSheetRow(stat, hoursFormula)]);
     },
 
-    _parseGroupStat(worksheet, columnIndex) {
+    _parseGroupStat(columnIndex) {
         return {
             name: `group${columnIndex}`,
             total: parseInt(
-                SheetService.getCellValue(worksheet, 1, columnIndex)
+                PhoneList.getCellValue(worksheetName, 1, columnIndex)
             ),
             demand: parseInt(
-                SheetService.getCellValue(worksheet, 2, columnIndex)
+                PhoneList.getCellValue(worksheetName, 2, columnIndex)
             )
         }
     },
 
     async loadGroupStatFromWorksheet(groupName = null) {
         await PhoneList.load(); // 1 req
-        const worksheet = await PhoneList.loadWorksheet(worksheetName); // 1 req
+        await PhoneList.loadWorksheet(worksheetName); // 1 req
 
         if (groupName) {
             const groupIndex = groupName.replace(/[^0-9]/g, '');
-            return this._parseGroupStat(worksheet, groupIndex);
+            return this._parseGroupStat(groupIndex);
         }
 
         const groupLength = 9;
         const stats = [];
         for (let c = 1; c < groupLength + 1; c++) {
-            stats.push(this._parseGroupStat(worksheet, c));
+            stats.push(this._parseGroupStat(c));
         }
 
         return stats;
@@ -144,7 +146,7 @@ export default {
         if (_.isEmpty(stat.groups)) {
             stat.groups = await this.loadGroupStatFromWorksheet();
             await StatRepository.updateActualStat(stat);
-            logger.info(`Get and save group stat (st=${stat.groups.length})`, stat.groups.map(s => [s.name, s.total]));
+            logger.info(`Get and save group stat (st=${stat.groups.length})`);
         }
 
         this.groupStatGetter = null;

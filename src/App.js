@@ -1,7 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import logger from './utils/logger';
-import {getConfigValue} from "./utils";
 import helloRoute from './routes/hello';
 import DB from "./boot/db";
 import cron from './boot/cron';
@@ -13,10 +12,10 @@ const app = express();
 
 DB.connect().then(async () => {
   //tmp2.execute();
-  /*tmp1.execute().then(() => {
+  tmp1.execute().then(() => {
     tmp.execute();
-  })*/
-  cron.start();
+  });
+  //cron.start();
 })
 app.use(bodyParser.json());
 app.use( bodyParser.urlencoded({ extended: true }) );
@@ -29,7 +28,7 @@ app.listen(PORT , () => {
     logger.info(`${process.env.ENV.toUpperCase()} environment enabled`);
   }
 
-  logger.info('Server (olx-cron) listening on port ' + PORT, {metadata:{port: PORT}});
+  logger.debug(`Start olx-cron (port=${PORT})`);
 });
 
 export default app;

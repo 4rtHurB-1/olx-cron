@@ -1,60 +1,17 @@
 import _ from 'lodash';
 import logger from "../utils/logger";
 import moment from "moment";
-import {getConfigValue} from "../utils";
+import {getConfigValue, columnToLetter} from "../utils";
 
 import PhoneCheck from "../sheets/phone-check";
 import PhoneList from "../sheets/phone-list";
 
 export default {
-    getCellValue(worksheet, row, column) {
-        return worksheet.getCell(row, column).value;
-    },
-
-    async getCellsInRange(sheet, worksheetName, range) {
-        const worksheet = sheet.getWorksheet(worksheetName)
-        return worksheet.getCellsInRange(range);
-    },
-
-    async getRows(sheet, worksheetName, limit, offset = 0) {
-        const worksheet = sheet.getWorksheet(worksheetName);
-        return worksheet.getRows({limit, offset});
-    },
-
-    async addRows(sheet, worksheetName, rows, options) {
-        if(rows.length) {
-            const worksheet = sheet.getWorksheet(worksheetName);
-            return worksheet.addRows(rows, options);
-        }
-    },
-
     async deleteRows(rows) {
         for(let row of rows.reverse()) {
             await row.delete();
             logger.info(`Delete row ${row.rowNumber}`);
         }
-    },
-
-    async saveNumbersToWorksheet(adverts) {
-        const worksheetName = 'main';
-
-        const key = getConfigValue('check_numbers_save_key', false);
-        const date = moment().format('DD.MM.YYYY HH:mm:ss');
-
-        const data = [];
-        for (let adv of adverts) {
-            data.push([
-                `'${adv.phone}`, // use ' symbol for save number format *** *** ** ** at sheet
-                date,
-                key,
-            ]);
-        }
-
-        return this.addRows(PhoneCheck, worksheetName, data);
-    },
-
-    undoSaveNumbersToWorksheet(rows) {
-        return this.deleteRows(rows);
     },
 
     async appendAdvertsToWorksheet(adverts, worksheetName) {
@@ -74,7 +31,69 @@ export default {
         return this._appendToWorksheet(PhoneList, worksheetName, data, position);
     },
 
-    async undoSaveAdvertsToWorksheet(sheet, worksheetName, data) {
+    async saveNumbersToWorksheet(adverts) {
+        const CHECK_NUMBER_SAVE_V = await getConfigValue('check_number_save.ver');
+
+        if(CHECK_NUMBER_SAVE_V === 'v1') {
+            const worksheetName = 'main';
+            const key = getConfigValue('check_number_save.key', false);
+            const date = moment().format('DD.MM.YYYY HH:mm:ss');
+
+            const data = [];
+            for (let adv of adverts) {
+                data.push([
+                    `'${adv.phone}`,
+                    date,
+                    key,
+                ]);
+            }
+
+            const rows = await PhoneCheck.addRows(worksheetName, data, {raw: false});
+
+            if(rows.length) {
+                await this.applyFormatForNumbers(PhoneCheck.getWorksheet(worksheetName), {
+                    start:  rows[0].rowNumber - 1,
+                    end: rows[rows.length - 1].rowNumber - 1
+                });
+            }
+
+            return rows;
+        } else if(CHECK_NUMBER_SAVE_V === 'v2') {
+            const worksheetName = 'new';
+
+            const data = [];
+            for (let adv of adverts) {
+                data.push({phone: adv.phone});
+            }
+
+            return this.appendAndSaveToWorksheet(
+                PhoneCheck, worksheetName, data, {row: 2, column: 4}
+            );
+        }
+    },
+
+    async undoSaveNumbersToWorksheet(rows) {
+        const CHECK_NUMBER_SAVE_V = await getConfigValue('check_number_save.ver');
+
+        if(CHECK_NUMBER_SAVE_V === 'v1') {
+            return this.deleteRows(rows);
+        } else if(CHECK_NUMBER_SAVE_V === 'v2') {
+            return this.undoAppendAndSaveToWorksheet(PhoneCheck, 'new', rows.added);
+        }
+    },
+
+    async saveWorksheet(worksheet) {
+        await worksheet.saveUpdatedCells();
+    },
+
+    async appendAndSaveToWorksheet(sheet, worksheetName, data, position) {
+        const res = await this._appendToWorksheet(sheet, worksheetName, data, position);
+        await this.saveWorksheet(res.worksheet);
+
+        return res;
+    },
+
+    async undoAppendAndSaveToWorksheet(sheet, worksheetName, data) {
         const worksheet = await sheet.loadWorksheet(worksheetName); // 2 req
 
         for (let d of data) {
@@ -87,8 +106,31 @@ export default {
         return worksheet;
     },
 
-    async saveWorksheet(worksheet) {
-        await worksheet.saveUpdatedCells();
+    async applyFormatForNumbers(worksheet, row) {
+        let range = getConfigValue('sheets.phone_check.format_range', false).split(':');
+        range = `${range[0]}${row.start + 1}:${range[1]}${row.end + 1}`;
+
+        await worksheet.loadCells(range);
+
+        const borderStyle = {
+            top: {style: 'SOLID'},
+            bottom: {style: 'SOLID'},
+            left: {style: 'SOLID'},
+            right: {style: 'SOLID'}
+        };
+
+        for(let r = row.start; r <= row.end; r++) {
+            for(let c = 0; c <= 2; c++) {
+                const cell = worksheet.getCell(r, c);
+
+                cell.numberFormat = c === 1
+                    ? {type: 'DATE' , pattern: 'dd mmmm yyy р.'}
+                    : {type: 'TEXT'};
+                cell.borders = borderStyle;
+            }
+        }
+
+        await this.saveWorksheet(worksheet);
     },
 
     async _appendToWorksheet(sheet, worksheetName, data, position = {row: 0, column: 0}) {
@@ -155,13 +197,5 @@ export default {
         }
 
         return rowIndex;
-    },
-
-    async testAdd() {
-        const rows = await this.addRows(PhoneCheck, 'main', [[
-            `'068 011 15 74`,
-            moment().format('DD.MM.YYYY HH:mm:ss'),
-            getConfigValue('check_numbers_save_key', false),
-        ]], {raw: false});
     }
 }
