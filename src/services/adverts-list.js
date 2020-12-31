@@ -175,7 +175,9 @@ export default {
                 savedAdverts = await this._saveAssignedAdverts(adverts, group.name, session);
                 this._checkIfSaveToDB(adverts.length, savedAdverts.length, `${group.name} assigned adverts`);
 
-                await SheetsService.saveWorksheet(worksheet);
+                if(worksheet) {
+                    await SheetsService.saveWorksheet(worksheet);
+                }
                 savedToWorksheet = true;
 
                 await delay(2000);
@@ -189,7 +191,7 @@ export default {
             });
         } catch (e) {
             if(savedToWorksheet) {
-                await SheetsService.undoAppendAndSaveToWorksheet(PhoneList, group.name, added); // 1 req
+                await SheetsService.undoAppendAdvertsToWorksheet(PhoneList, group.name, added); // 1 req
             }
 
             logger.error(`Error while save group assignments: ${e.message}`);

@@ -12,10 +12,10 @@ const app = express();
 
 DB.connect().then(async () => {
   //tmp2.execute();
-  tmp1.execute().then(() => {
+  /*tmp1.execute().then(() => {
     tmp.execute();
-  });
-  //cron.start();
+  });*/
+  cron.start();
 })
 app.use(bodyParser.json());
 app.use( bodyParser.urlencoded({ extended: true }) );

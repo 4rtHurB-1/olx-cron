@@ -15,20 +15,46 @@ export default {
     },
 
     async appendAdvertsToWorksheet(adverts, worksheetName) {
-        const position = {row: 1, column: 0};
+        const LIST_ADVERTS_SAVE_V = await getConfigValue('list_adverts_save.ver');
 
         const now = moment().format('DD.MM.YYYY HH:mm');
-        const data = [];
-        for (let adv of adverts) {
-            data.push({
-                date: now,
-                gender: adv.gender,
-                phone: adv.phone,
-                key: adv.url
-            });
-        }
+        if(LIST_ADVERTS_SAVE_V === 'v1') {
+            const position = {row: 1, column: 0};
 
-        return this._appendToWorksheet(PhoneList, worksheetName, data, position);
+            const data = [];
+            for (let adv of adverts) {
+                data.push({
+                    date: now,
+                    gender: adv.gender,
+                    phone: adv.phone,
+                    key: adv.url
+                });
+            }
+
+            return this._appendToWorksheet(PhoneList, worksheetName, data, position);
+        } else if(LIST_ADVERTS_SAVE_V === 'v2') {
+            const data = [];
+            for (let adv of adverts) {
+                data.push([
+                    now,
+                    adv.gender,
+                    `'${adv.phone}`,
+                    adv.url
+                ]);
+            }
+
+            return PhoneList.addRows(worksheetName, data, {raw: false});
+        }
+    },
+
+    async undoAppendAdvertsToWorksheet(sheet, worksheetName, data) {
+        const LIST_ADVERTS_SAVE_V = await getConfigValue('list_adverts_save.ver');
+
+        if(LIST_ADVERTS_SAVE_V === 'v1') {
+            return this.undoAppendAndSaveToWorksheet(sheet, worksheetName, data);
+        } else if(LIST_ADVERTS_SAVE_V === 'v2') {
+            return this.deleteRows(data);
+        }
     },
 
     async saveNumbersToWorksheet(adverts) {

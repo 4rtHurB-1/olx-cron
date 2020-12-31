@@ -28,7 +28,12 @@ export default {
         // can be db stored
         check_number_save: {
             key: 'Західний',
-            ver: 'v2',
+            ver: 'v1',
+        },
+
+        // can be db stored
+        list_adverts_save: {
+            ver: 'v1'
         },
 
         // can be db stored
@@ -48,14 +53,14 @@ export default {
 
         // can be db stored
         cron_schedules: {
-            /*update_stats: CRON_SCHEDULES[0] || '*!/15 * * * *',
+            update_stats: CRON_SCHEDULES[0] || '*/15 * * * *',
             run_crawler: CRON_SCHEDULES[1] || '15,25,50 * * * *',
             phone_checks: CRON_SCHEDULES[2] || '2,32 0-7 * * *',
-            assign_adverts: CRON_SCHEDULES[3] || '10,40 * * * *',*/
-            update_stats: CRON_SCHEDULES[0] || '*/15 * * * *',
-            run_crawler: CRON_SCHEDULES[1] || '*/10 * * * *',
+            assign_adverts: CRON_SCHEDULES[3] || '10,40 * * * *',
+            /*update_stats: CRON_SCHEDULES[0] || '*!/15 * * * *',
+            run_crawler: CRON_SCHEDULES[1] || '*!/10 * * * *',
             phone_checks: CRON_SCHEDULES[2] || '15,35,55 * * * *',
-            assign_adverts: CRON_SCHEDULES[3] || '5,25,40 * * * *',
+            assign_adverts: CRON_SCHEDULES[3] || '5,25,40 * * * *',*/
         },
 
         gapi: {
@@ -134,6 +139,11 @@ export default {
         check_number_save: {
             key: 'Західний ТЕСТ',
             ver: 'v1',
+        },
+
+        // can be db stored
+        list_adverts_save: {
+            ver: 'v1'
         },
 
         // can be db stored
