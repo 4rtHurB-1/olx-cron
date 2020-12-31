@@ -38,7 +38,7 @@ export default {
 
         // can be db stored
         stat: {
-            hours_formula: `=IF(MOD(HOUR(B:row);'Статистика'!$A$7) = 0; 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7) & ":00 - " & 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7+1); 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7) & ":00 - " & 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7+1)) & ":00"`,
+            hours_formula: `=IF(MOD(HOUR(B:row);'📈 Стат.'!$A$7) = 0; '📈 Стат.'!$A$7*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$7) & ":00 - " & '📈 Стат.'!$A$7*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$7+1); '📈 Стат.'!$A$7*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$7) & ":00 - " & '📈 Стат.'!$A$7*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$7+1)) & ":00"`,
             period: '1 hour',
         },
 
@@ -148,7 +148,7 @@ export default {
 
         // can be db stored
         stat: {
-            hours_formula: `=IF(MOD(HOUR(B:row);'Статистика'!$A$7) = 0; 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7) & ":00 - " & 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7+1); 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7) & ":00 - " & 'Статистика'!$A$7*FLOOR(HOUR(B:row)/'Статистика'!$A$7+1)) & ":00"`,
+            hours_formula: `=IF(MOD(HOUR(B:row);'📈 Стат.'!$A$7) = 0; '📈 Стат.'!$A$7*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$7) & ":00 - " & '📈 Стат.'!$A$7*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$7+1); '📈 Стат.'!$A$7*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$7) & ":00 - " & '📈 Стат.'!$A$7*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$7+1)) & ":00"`,
             period: '1 hour',
         },
 
