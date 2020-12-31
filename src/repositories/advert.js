@@ -27,7 +27,7 @@ export default {
         let query =  Advert
             .find({
                 phone: {$exists:true},
-                checked: false,
+                checked: null,
                 pre_checked: true
             })
             .select({ _id: 1, phone: 1, url: 1, checked: 1, pre_checked: 1, username: 1, gender: 1});
