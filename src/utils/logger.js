@@ -10,7 +10,8 @@ const getDbTransportParams = () => {
   return {
     db: db.url,
     collection: db.collection,
-    decolorize: true
+    decolorize: true,
+    expireAfterSeconds: 60 * 60 * 24 * 14 // 2 weeks
   };
 }
 
@@ -29,59 +30,88 @@ const getTelTransportParams = () => {
   }
 }
 
-const logger = winston.createLogger({
-  format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.timestamp(),
-      winston.format.printf(info => `[${moment(info.timestamp).format('YYYY-MM-DD HH:mm:ss.SSS')}][${info.level}]${info.message}`)
-  ),
-  defaultMeta: { service: 'user-service' },
-  transports: [
-    new winston.transports.Console({level: 'debug'}),
-    new winston.transports.MongoDB({
-      ...getDbTransportParams(),
-      level: 'debug',
-    }),
-    new winston.transports.MongoDB({
-      ...getDbTransportParams(),
-      level: 'error',
-    })
-  ],
-  exitOnError: false
-});
-
-if(process.env.ENV !== 'test') {
-  logger.add(
-      new TelegramLogger({
-        ...getTelTransportParams(),
-        level: 'debug'
-      })
-  );
-
-  logger.add(
-      new TelegramLogger({
-        ...getTelTransportParams(),
-        level: 'error'
-      })
-  );
+const getWinstonParams = () => {
+  return {
+    format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.timestamp(),
+        winston.format.printf(info => `[${moment(info.timestamp).format('YYYY-MM-DD HH:mm:ss.SSS')}][${info.level}]${info.message}`)
+    ),
+    defaultMeta: { service: 'user-service' },
+    exitOnError: false
+  }
 }
 
 export default {
+  _logger: null,
+  _debugLogger: null,
+
   labels: ['get-group-stats', 'run-crawler', 'phone-checks', 'assign-adverts'],
 
-  setLabel(label) {
-    this.label = label;
+  _getLogger() {
+    return winston.createLogger({
+      ...getWinstonParams(),
+      level: 'info',
+      transports: [
+        new winston.transports.Console({level: 'debug'})
+      ]
+    });
+  },
+
+  _getDebugLogger() {
+    const logger = winston.createLogger({
+      ...getWinstonParams(),
+      level: 'debug',
+      transports: [
+        new winston.transports.Console({level: 'debug'}),
+        new winston.transports.MongoDB({
+          ...getDbTransportParams(),
+          level: 'debug',
+        }),
+        new winston.transports.MongoDB({
+          ...getDbTransportParams(),
+          level: 'error',
+        })
+      ]
+    });
+
+    if(process.env.ENV !== 'test') {
+      logger.add(
+          new TelegramLogger({
+            ...getTelTransportParams(),
+            level: 'debug'
+          })
+      );
+
+      logger.add(
+          new TelegramLogger({
+            ...getTelTransportParams(),
+            level: 'error'
+          })
+      );
+    }
+
+    return logger;
+  },
+
+  getLogger(level) {
+    if (['error', 'debug'].includes(level)) {
+      if (!this._debugLogger) {
+        this._debugLogger = this._getDebugLogger();
+
+        return this._debugLogger;
+      }
+    }
+
+    if (!this._logger) {
+      this._logger = this._getLogger();
+    }
+
+    return this._logger;
   },
 
   _log(level, message, params) {
     let label, meta;
-    const transform = (m) => {
-      if(typeof m === 'object' && m._doc) {
-        return m._doc;
-      }
-
-      return m;
-    }
 
     if(Array.isArray(params)) {
       if(params.length === 1) {
@@ -96,23 +126,19 @@ export default {
       }
     }
 
-    if(meta) {
-      if(Array.isArray(meta)) {
-        meta = meta.map(transform);
-      } else {
-        meta = transform(meta);
-      }
-    }
-
     if(label || this.label) {
       message = `[${label || this.label}]: ${message}`;
     } else {
       message = `: ${message}`;
     }
 
-    logger.log(level, message, {
+    this.getLogger(level).log(level, message, {
       metadata: meta
     });
+  },
+
+  setLabel(label) {
+    this.label = label;
   },
 
   info(message, ...params) {
