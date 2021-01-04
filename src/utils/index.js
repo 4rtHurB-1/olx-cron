@@ -66,18 +66,6 @@ export function parsePeriodString(string) {
 	return {value: period[0], part: period[1]};
 }
 
-export function getNextDateByDayOfWeek(dayOfWeek) {
-  dayOfWeek = parseInt(dayOfWeek, 10);
-
-  let date = moment().utc();
-  if(date.isoWeekday() > dayOfWeek) {
-    date = moment().utc().isoWeek(date.isoWeek() + 1);
-  }
-
-  date.isoWeekday(dayOfWeek);
-  return date.startOf('day');
-}
-
 const getSplittedKey = (key) => {
   let multiKey = key.split('.');
   let singleKey = multiKey.shift();

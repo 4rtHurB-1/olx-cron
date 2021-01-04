@@ -65,7 +65,7 @@ export default {
     },
 
     toSheetRow(stat, hoursFormula) {
-        const date = moment().startOf('hour').format('DD.MM.YYYY HH:mm');
+        const date = moment.tz(moment(), 'Europe/Kiev').startOf('hour').format('DD.MM.YYYY HH:mm');
 
         const row =  [
             hoursFormula,

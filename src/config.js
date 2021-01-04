@@ -38,7 +38,8 @@ export default {
 
         // can be db stored
         stat: {
-            hours_formula: `=IF(MOD(HOUR(B:row);'📈 Стат.'!$A$7) = 0; '📈 Стат.'!$A$7*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$7) & ":00 - " & '📈 Стат.'!$A$7*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$7+1); '📈 Стат.'!$A$7*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$7) & ":00 - " & '📈 Стат.'!$A$7*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$7+1)) & ":00"`,
+            time_zone: 'Europe/Kiev',
+            hours_formula: `=IF(MOD(HOUR(B:row);'📈 Стат.'!$A$8) = 0; '📈 Стат.'!$A$8*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$8) & ":00 - " & '📈 Стат.'!$A$8*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$8+1); '📈 Стат.'!$A$8*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$8) & ":00 - " & '📈 Стат.'!$A$8*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$8+1)) & ":00"`,
             period: '1 hour',
         },
 
@@ -55,7 +56,7 @@ export default {
         cron_schedules: {
             update_stats: CRON_SCHEDULES[0] || '*/15 * * * *',
             run_crawler: CRON_SCHEDULES[1] || '15,25,50 * * * *',
-            phone_checks: CRON_SCHEDULES[2] || '2,32 0-7 * * *',
+            phone_checks: CRON_SCHEDULES[2] || '2,32 22,23,0-5 * * *', // hours at UTC
             assign_adverts: CRON_SCHEDULES[3] || '10,40 * * * *',
             /*update_stats: CRON_SCHEDULES[0] || '*!/15 * * * *',
             run_crawler: CRON_SCHEDULES[1] || '*!/10 * * * *',
@@ -148,7 +149,8 @@ export default {
 
         // can be db stored
         stat: {
-            hours_formula: `=IF(MOD(HOUR(B:row);'📈 Стат.'!$A$7) = 0; '📈 Стат.'!$A$7*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$7) & ":00 - " & '📈 Стат.'!$A$7*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$7+1); '📈 Стат.'!$A$7*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$7) & ":00 - " & '📈 Стат.'!$A$7*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$7+1)) & ":00"`,
+            time_zone: 'Europe/Kiev',
+            hours_formula: `=IF(MOD(HOUR(B:row);'📈 Стат.'!$A$8) = 0; '📈 Стат.'!$A$8*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$8) & ":00 - " & '📈 Стат.'!$A$8*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$8+1); '📈 Стат.'!$A$8*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$8) & ":00 - " & '📈 Стат.'!$A$8*FLOOR(HOUR(B:row)/'📈 Стат.'!$A$8+1)) & ":00"`,
             period: '1 hour',
         },
 
