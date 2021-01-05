@@ -89,9 +89,13 @@ export default class BaseSheet {
     }
 
     async addRows(worksheetName, rows, options) {
-        if(rows.length) {
-            const worksheet = this.getWorksheet(worksheetName);
-            return worksheet.addRows(rows, options);
+        if(!rows.length) {
+            return {added: [], worksheet: null, saved: false};
         }
+
+        const worksheet = this.getWorksheet(worksheetName);
+        const added = await worksheet.addRows(rows, options);
+
+        return {added, worksheet, saved: true};
     }
 }

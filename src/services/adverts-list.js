@@ -60,33 +60,32 @@ export default {
     async saveCheckedAdverts(checkedAdverts, allAdverts) {
         const session = await mongoose.startSession();
 
-        let addedRows;
-        try {
-            await session.withTransaction(async (session) => {
-                const saveChecked = await this._saveCheckedAdverts(checkedAdverts, session);
-                this._checkIfSaveToDB(checkedAdverts.length, saveChecked.length, 'checked adverts');
+        let saveRes;
 
-                const saveFalseChecked = await this._saveFalseCheckedAdverts(allAdverts, saveChecked, session);
-                this._checkIfSaveToDB(allAdverts.length - checkedAdverts.length, saveFalseChecked.length, 'false-checked adverts');
+        await session.withTransaction(async (session) => {
+            const saveChecked = await this._saveCheckedAdverts(checkedAdverts, session);
+            this._checkIfSaveToDB(checkedAdverts.length, saveChecked.length, 'checked adverts');
 
-                addedRows = await SheetsService.saveNumbersToWorksheet(checkedAdverts);
+            const saveFalseChecked = await this._saveFalseCheckedAdverts(allAdverts, saveChecked, session);
+            this._checkIfSaveToDB(allAdverts.length - checkedAdverts.length, saveFalseChecked.length, 'false-checked adverts');
 
-                await StatsService.saveCheckStat(allAdverts.length, saveChecked.length, {session});
+            saveRes = await SheetsService.saveNumbersToWorksheet(checkedAdverts);
 
-                logger.debug(`Mark adverts as checked (true=${saveChecked.length}, false=${saveFalseChecked.length})`, {
-                    phones: checkedAdverts.map(d => d.phone),
-                    addedRows
-                });
+            await StatsService.saveCheckStat(allAdverts.length, saveChecked.length, {session});
+
+            logger.debug(`Mark adverts as checked (true=${saveChecked.length}, false=${saveFalseChecked.length})`, {
+                phones: checkedAdverts.map(d => d.phone),
+                added: saveRes.added
             });
-        } catch (e) {
-            if(addedRows && addedRows.length) {
-                await SheetsService.undoSaveNumbersToWorksheet(addedRows);
+        }).catch(async e => {
+            if (saveRes.saved && saveRes.added.length) {
+                await SheetsService.undoSaveNumbersToWorksheet(saveRes);
             }
 
             logger.error(`Error while save checked adverts: ${e.message}`, e);
-        } finally {
-            session.endSession();
-        }
+        });
+
+        session.endSession();
     },
 
     async saveAssignments(assignments, groups) {
@@ -108,7 +107,9 @@ export default {
                 }
             }
 
-            logger.debug(`Assigned adverts ( ${resLog.slice(0, resLog.length - 2)} )`, res);
+            if(resLog.length) {
+                logger.debug(`Assigned adverts ( ${resLog.slice(0, resLog.length - 2)} )`, res);
+            }
         } catch (e) {
             logger.error(`Error while save assignments: ${e.message}`);
         }
@@ -162,47 +163,46 @@ export default {
     async _saveGroupAssignments(group, adverts) {
         const session = await mongoose.startSession();
 
-        let worksheet, added, savedToWorksheet, savedAdverts, transRetries = 0;
-        try {
-            ({added, worksheet} = await SheetsService.appendAdvertsToWorksheet(adverts, group.name)); // 2 req
+        let saveRes, savedAdverts, transRetries = 0;
+        await session.withTransaction(async (session) => {
+            if (transRetries === 0) {
+                saveRes = await SheetsService.saveAdvertsToWorksheet(adverts, group.name); // 2 req
+            } else {
+                logger.debug(`Transaction retries (ret=${transRetries})`);
+            }
+            transRetries++;
 
-            await session.withTransaction(async (session) => {
-                if(transRetries > 0) {
-                    logger.debug(`Transaction retries (ret=${transRetries})`);
-                }
-                transRetries++;
+            savedAdverts = await this._saveAssignedAdverts(adverts, group.name, session);
+            this._checkIfSaveToDB(adverts.length, savedAdverts.length, `${group.name} assigned adverts`);
 
-                savedAdverts = await this._saveAssignedAdverts(adverts, group.name, session);
-                this._checkIfSaveToDB(adverts.length, savedAdverts.length, `${group.name} assigned adverts`);
-
-                if(worksheet) {
-                    await SheetsService.saveWorksheet(worksheet);
-                }
-                savedToWorksheet = true;
-
-                await delay(2000);
-
-                const groupStatSaved = await StatsService.saveGroupStat(group.name, session); // 3 req
-                this._checkIfSaveToDB(1, groupStatSaved.length, `${group.name} stat`);
-
-                await StatsService.saveGroupAssignStat(group.name, savedAdverts.length, {session});
-
-                logger.info(`Save assignments (gr=${group.name}, adv=${savedAdverts.length})`);
-            });
-        } catch (e) {
-            if(savedToWorksheet) {
-                await SheetsService.undoAppendAdvertsToWorksheet(PhoneList, group.name, added); // 1 req
+            if (!saveRes.saved && saveRes.worksheet) {
+                await SheetsService.saveWorksheet(saveRes.worksheet);
+                saveRes.saved = true;
             }
 
-            logger.error(`Error while save group assignments: ${e.message}`);
-        } finally {
-            session.endSession();
+            await delay(2000);
 
-            return {
-                group: group.name,
-                assigned: savedAdverts ? savedAdverts.length : 0
-            };
-        }
+            const groupStatSaved = await StatsService.saveGroupStat(group.name, session); // 3 req
+            this._checkIfSaveToDB(1, groupStatSaved.length, `${group.name} stat`);
+
+            await StatsService.saveGroupAssignStat(group.name, savedAdverts.length, {session});
+
+            logger.info(`Save assignments (gr=${group.name}, adv=${savedAdverts.length})`);
+        }).catch(async e => {
+            savedAdverts = null;
+            if (saveRes.saved && saveRes.added.length) {
+                await SheetsService.undoSaveAdvertsToWorksheet(PhoneList, group.name, saveRes); // 1 req
+            }
+
+            logger.error(`Error while save group (gr=${group.name}) assignments: ${e.message}`);
+        });
+
+        session.endSession();
+
+        return {
+            group: group.name,
+            assigned: savedAdverts ? savedAdverts.length : 0
+        };
     },
 
     async _saveFalseCheckedAdverts(allAdverts, savedCheckedAdvertIDs, session) {

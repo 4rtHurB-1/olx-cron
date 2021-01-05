@@ -185,7 +185,6 @@ export default {
         },
 
         sheets: {
-            // new
             phone_check: {
                 id: '1Pet6pU24iB5CCCpH6LYWJFiYhPGcNxBAB4HxU6WO3Ww',
                 worksheets: {
@@ -200,17 +199,8 @@ export default {
                 },
                 format_range: 'A:C'
             },
-           /* phone_check: {
-                id: '1sRoWLcIr7Y85-3o0MZXWbmKbptF97texFyK1QyZNzqQ',
-                worksheets: {
-                    main: {
-                        id: 1214041824,
-                        range: 'A1:A21000'
-                    }
-                }
-            },*/
             phone_list: {
-                id: '1sRoWLcIr7Y85-3o0MZXWbmKbptF97texFyK1QyZNzqQ',
+                id: '18D7zoQghobtRMjJhLtCZBmJa1_Q9eQBOjLo7bbPH4jc',
                 worksheets: {
                     stat: {
                         id: 1643776889,

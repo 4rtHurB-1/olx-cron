@@ -12,7 +12,8 @@ const app = express();
 
 DB.connect().then(async () => {
   //tmp2.execute();
-  /*tmp1.execute().then(() => {
+  //tmp.execute();
+/*  tmp1.execute().then(() => {
     tmp.execute();
   });*/
   cron.start();

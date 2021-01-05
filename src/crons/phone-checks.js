@@ -13,7 +13,7 @@ export default {
                 return;
             }
 
-            const adverts = await AdvertListService.getParsedUncheckedAdverts(demand > 50 ? 50: demand);
+            const adverts = await AdvertListService.getParsedUncheckedAdverts(demand > 100 ? 100: demand);
 
             if(_.isEmpty(adverts)) {
                 return;

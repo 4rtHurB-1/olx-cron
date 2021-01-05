@@ -1,24 +1,41 @@
 import _ from 'lodash';
 import logger from "../utils/logger";
-import moment from "moment";
-import {getConfigValue, columnToLetter} from "../utils";
+import moment from "moment-timezone";
+import {getConfigValue, getConfigValues} from "../utils";
 
 import PhoneCheck from "../sheets/phone-check";
 import PhoneList from "../sheets/phone-list";
 
 export default {
-    async deleteRows(rows) {
-        for(let row of rows.reverse()) {
+    async deleteRows(worksheet, rows) {
+        // Simplify deleting rows
+        /*for(let row of rows.reverse()) {
             await row.delete();
             logger.info(`Delete row ${row.rowNumber}`);
-        }
+        }*/
+
+        logger.debug(`Deleting rows ${worksheet.rowCount - rows.length + 1}-${worksheet.rowCount}`);
+
+        await worksheet.resize({ rowCount: worksheet.rowCount - rows.length, columnCount: worksheet.columnCount });
     },
 
-    async appendAdvertsToWorksheet(adverts, worksheetName) {
-        const LIST_ADVERTS_SAVE_V = await getConfigValue('list_adverts_save.ver');
+    async saveAdvertsToWorksheet(adverts, worksheetName) {
+        const [LIST_ADVERTS_SAVE_V, timeZone] = await getConfigValues(['list_adverts_save.ver', 'stat.time_zone']);
 
-        const now = moment().format('DD.MM.YYYY HH:mm');
+        const now = moment().tz(timeZone).format('DD.MM.YYYY HH:mm');
         if(LIST_ADVERTS_SAVE_V === 'v1') {
+            const data = [];
+            for (let adv of adverts) {
+                data.push([
+                    now,
+                    adv.gender,
+                    `'${adv.phone}`,
+                    adv.url
+                ]);
+            }
+
+            return PhoneList.addRows(worksheetName, data, {raw: false});
+        } else if(LIST_ADVERTS_SAVE_V === 'v2') {
             const position = {row: 1, column: 0};
 
             const data = [];
@@ -32,38 +49,26 @@ export default {
             }
 
             return this._appendToWorksheet(PhoneList, worksheetName, data, position);
-        } else if(LIST_ADVERTS_SAVE_V === 'v2') {
-            const data = [];
-            for (let adv of adverts) {
-                data.push([
-                    now,
-                    adv.gender,
-                    `'${adv.phone}`,
-                    adv.url
-                ]);
-            }
-
-            return PhoneList.addRows(worksheetName, data, {raw: false});
         }
     },
 
-    async undoAppendAdvertsToWorksheet(sheet, worksheetName, data) {
+    async undoSaveAdvertsToWorksheet(sheet, worksheetName, saveRes) {
         const LIST_ADVERTS_SAVE_V = await getConfigValue('list_adverts_save.ver');
 
         if(LIST_ADVERTS_SAVE_V === 'v1') {
-            return this.undoAppendAndSaveToWorksheet(sheet, worksheetName, data);
+            return this.deleteRows(saveRes.worksheet, saveRes.added);
         } else if(LIST_ADVERTS_SAVE_V === 'v2') {
-            return this.deleteRows(data);
+            return this.undoAppendAndSaveToWorksheet(sheet, worksheetName, saveRes.added);
         }
     },
 
     async saveNumbersToWorksheet(adverts) {
-        const CHECK_NUMBER_SAVE_V = await getConfigValue('check_number_save.ver');
+        const [CHECK_NUMBER_SAVE_V, timeZone] = await getConfigValues(['check_number_save.ver', 'stat.time_zone']);
 
         if(CHECK_NUMBER_SAVE_V === 'v1') {
             const worksheetName = 'main';
             const key = getConfigValue('check_number_save.key', false);
-            const date = moment().format('DD.MM.YYYY HH:mm:ss');
+            const date = moment().tz(timeZone).format('DD.MM.YYYY HH:mm:ss');
 
             const data = [];
             for (let adv of adverts) {
@@ -74,16 +79,16 @@ export default {
                 ]);
             }
 
-            const rows = await PhoneCheck.addRows(worksheetName, data, {raw: false});
+            const res = await PhoneCheck.addRows(worksheetName, data, {raw: false});
 
-            if(rows.length) {
+            if(res.added.length) {
                 await this.applyFormatForNumbers(PhoneCheck.getWorksheet(worksheetName), {
-                    start:  rows[0].rowNumber - 1,
-                    end: rows[rows.length - 1].rowNumber - 1
+                    start:  res.added[0].rowNumber - 1,
+                    end: res.added[res.added.length - 1].rowNumber - 1
                 });
             }
 
-            return rows;
+            return res;
         } else if(CHECK_NUMBER_SAVE_V === 'v2') {
             const worksheetName = 'new';
 
@@ -98,13 +103,13 @@ export default {
         }
     },
 
-    async undoSaveNumbersToWorksheet(rows) {
+    async undoSaveNumbersToWorksheet(saveRes) {
         const CHECK_NUMBER_SAVE_V = await getConfigValue('check_number_save.ver');
 
         if(CHECK_NUMBER_SAVE_V === 'v1') {
-            return this.deleteRows(rows);
+            return this.deleteRows(saveRes.worksheet, saveRes.added);
         } else if(CHECK_NUMBER_SAVE_V === 'v2') {
-            return this.undoAppendAndSaveToWorksheet(PhoneCheck, 'new', rows.added);
+            return this.undoAppendAndSaveToWorksheet(PhoneCheck, 'new', saveRes.added);
         }
     },
 
@@ -114,7 +119,9 @@ export default {
 
     async appendAndSaveToWorksheet(sheet, worksheetName, data, position) {
         const res = await this._appendToWorksheet(sheet, worksheetName, data, position);
+
         await this.saveWorksheet(res.worksheet);
+        res.saved = true;
 
         return res;
     },
@@ -172,7 +179,7 @@ export default {
             rowId++;
         }
 
-        return {added, worksheet};
+        return {added, worksheet, saved: false};
     },
 
     _setObjectToRow(obj, worksheet, rowIndex, columnIndex) {

@@ -1,5 +1,5 @@
 import {Schema, model} from 'mongoose';
-import moment from "moment";
+import moment from "moment-timezone";
 import {getConfigValue, parsePeriodString} from "../utils";
 import GroupStatSchema from "./schemas/group-stat";
 import GroupAssignSchema from "./schemas/assign-stat";
