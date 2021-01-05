@@ -46,7 +46,7 @@ export default {
   _logger: null,
   _debugLogger: null,
 
-  labels: ['get-group-stats', 'run-crawler', 'phone-checks', 'assign-adverts'],
+  labels: ['update-stats', 'run-crawler', 'phone-checks', 'assign-adverts'],
 
   _getLogger() {
     return winston.createLogger({

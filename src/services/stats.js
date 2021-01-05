@@ -5,7 +5,6 @@ import {getConfigValue} from "../utils";
 
 import StatRepository from "../repositories/stat";
 import PhoneList from "../sheets/phone-list";
-import SheetService from "./sheets-service";
 
 const worksheetName = 'stat';
 
