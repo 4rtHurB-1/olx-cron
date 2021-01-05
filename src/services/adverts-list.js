@@ -57,6 +57,13 @@ export default {
         return adverts;
     },
 
+    async saveExpiredAdverts(urls) {
+        const res = await AdvertRepository.updateByIds(urls, {expired: true});
+        return res && res.ok && res.nModified
+            ? res.nModified
+            : 0;
+    },
+
     async saveCheckedAdverts(checkedAdverts, allAdverts) {
         const session = await mongoose.startSession();
 

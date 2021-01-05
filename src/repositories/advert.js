@@ -55,12 +55,20 @@ export default {
     },
 
     updateByIds(adverts, doc, session) {
-        const ids = adverts.map(a => a.url);
+        let ids = adverts;
+        if(Array.isArray(adverts) && typeof adverts[0] === 'object') {
+            ids = adverts.map(a => a.url);
+        }
+
         //logger.info(`Update Adverts (adv=${adverts.length}, doc=${JSON.stringify(doc)})`, {ids, doc});
-        return Advert
-            .updateMany({url: {$in: ids}}, {$set :doc})
-            .session(session)
-            .exec();
+        const query = Advert
+            .updateMany({url: {$in: ids}}, {$set :doc});
+
+        if(session) {
+            query.session(session);
+        }
+
+        return query.exec();
     },
 
     async updateOne(id, doc, session) {

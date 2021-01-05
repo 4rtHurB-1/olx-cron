@@ -12,6 +12,10 @@ const AdvertSchema = new Schema({
     type: Boolean,
     default: false
   },
+  expired: {
+    type: Boolean,
+    default: false
+  },
   gender: String,
   assigned_to: String
 }, {
