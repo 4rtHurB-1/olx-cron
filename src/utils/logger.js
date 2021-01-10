@@ -75,7 +75,7 @@ export default {
       ]
     });
 
-    if(process.env.ENV !== 'prod') {
+    if(process.env.ENV !== 'test') {
       logger.add(
           new TelegramLogger({
             ...getTelTransportParams(),
