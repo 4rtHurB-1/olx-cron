@@ -47,7 +47,9 @@ export default {
         try {
             const promises = [];
             for(let host of hosts) {
-                promises.push(axios.get(host));
+                promises.push(axios.get(host).catch(e => {
+                    logger.warning(`Ping crawler API host ${host} failed: ${e.message}`, 'run-crawler', e);
+                }));
             }
 
             const results = await Promise.all(promises);
@@ -66,7 +68,7 @@ export default {
 
             return availableHost;
         } catch (e) {
-            logger.warning(`Ping crawler API failed: ${e.message}`, 'run-crawler', e);
+            logger.warning(`Error while pingCrawlerAPIs: ${e.message}`, 'run-crawler', e);
             return false;
         }
     },
