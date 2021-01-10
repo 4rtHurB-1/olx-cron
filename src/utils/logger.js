@@ -75,7 +75,7 @@ export default {
       ]
     });
 
-    if(process.env.ENV !== 'test') {
+    if(process.env.ENV !== 'prod') {
       logger.add(
           new TelegramLogger({
             ...getTelTransportParams(),
@@ -98,9 +98,9 @@ export default {
     if (['error', 'debug'].includes(level)) {
       if (!this._debugLogger) {
         this._debugLogger = this._getDebugLogger();
-
-        return this._debugLogger;
       }
+
+      return this._debugLogger;
     }
 
     if (!this._logger) {
