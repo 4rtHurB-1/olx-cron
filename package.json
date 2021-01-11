@@ -5,7 +5,7 @@
   "main": "App.js",
   "scripts": {
     "start": "node build/App.bundle.js",
-    "dev": "ENV=test concurrently \"webpack -d --watch\" \"nodemon build/App.bundle.js\"",
+    "dev": "concurrently \"webpack -d --watch\" \"nodemon build/App.bundle.js\"",
     "build": "webpack -p"
   },
   "author": "",
@@ -41,6 +41,7 @@
     "mongodb": "^3.6.3",
     "mongoose": "^5.10.13",
     "node-cron": "^2.0.3",
+    "olx": "0.0.3",
     "winston": "^3.3.3",
     "winston-mongodb": "^5.0.5",
     "winston-telegram": "git+https://github.com/4rtHurB/winston-telegram.git#master"
