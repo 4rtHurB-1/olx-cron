@@ -39,7 +39,9 @@ export default {
         } finally {
             await this.saveStat(res, startAt);
 
-            Events.emit('crawler.execute', res.data.length - 1);
+            if(res.status === 200) {
+                Events.emit('crawler.execute', res.data.length - 1);
+            }
         }
     },
 
