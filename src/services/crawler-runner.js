@@ -33,9 +33,13 @@ export default {
                 headers: {'Content-Type': 'application/json'}
             });
 
+            if(res.status !== 200) {
+                throw new Error(`Crawler run failed (status=${res.status})`)
+            }
+
             logger.debug(`Crawler executed (adv=${res.data.length - 1}, max=${countAdv})`, 'run-crawler', data);
         } catch (e) {
-            logger.error(`Error while crawler execute: ${e.message}`, 'run-crawler', e);
+            logger.error(`Error while crawler execute (status=${res.status}): ${e.message}`, 'run-crawler', e);
         } finally {
             await this.saveStat(res, startAt);
 
