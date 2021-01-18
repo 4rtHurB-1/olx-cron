@@ -98,9 +98,9 @@ export default {
     if (['error', 'debug'].includes(level)) {
       if (!this._debugLogger) {
         this._debugLogger = this._getDebugLogger();
-
-        return this._debugLogger;
       }
+
+      return this._debugLogger;
     }
 
     if (!this._logger) {

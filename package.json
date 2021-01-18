@@ -5,7 +5,7 @@
   "main": "App.js",
   "scripts": {
     "start": "node build/App.bundle.js",
-    "dev": "ENV=test concurrently \"webpack -d --watch\" \"nodemon build/App.bundle.js\"",
+    "dev": "concurrently \"webpack -d --watch\" \"nodemon build/App.bundle.js\"",
     "build": "webpack -p"
   },
   "author": "",

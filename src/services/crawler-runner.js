@@ -24,7 +24,7 @@ export default {
         let res;
         let startAt = moment();
         try {
-            logger.info(`Run crawler (max=${countAdv})`, 'run-crawler');
+            logger.info(`Run crawler (max=${countAdv}, host=${availableHost})`, 'run-crawler');
 
             res = await axios({
                 method: 'post',
@@ -33,13 +33,19 @@ export default {
                 headers: {'Content-Type': 'application/json'}
             });
 
+            if(res.status !== 200) {
+                throw new Error(`Crawler run failed (status=${res.status})`)
+            }
+
             logger.debug(`Crawler executed (adv=${res.data.length - 1}, max=${countAdv})`, 'run-crawler', data);
         } catch (e) {
-            logger.error(`Error while crawler execute - ${e.message}`, 'run-crawler', e);
+            logger.error(`Error while crawler execute (status=${res.status}) - ${e.message}`, 'run-crawler', e);
         } finally {
             await this.saveStat(res, startAt);
 
-            Events.emit('crawler.execute', res.data.length - 1);
+            if(res.status === 200) {
+                Events.emit('crawler.execute', res.data.length - 1);
+            }
         }
     },
 
@@ -47,7 +53,9 @@ export default {
         try {
             const promises = [];
             for(let host of hosts) {
-                promises.push(axios.get(host));
+                promises.push(axios.get(host).catch(e => {
+                    //logger.warning(`Ping crawler API host ${host} failed: ${e.message}`, 'run-crawler', e);
+                }));
             }
 
             const results = await Promise.all(promises);
@@ -66,7 +74,7 @@ export default {
 
             return availableHost;
         } catch (e) {
-            logger.warning(`Ping crawler API failed: ${e.message}`, 'run-crawler', e);
+            logger.error(`Ping crawler API failed (error: ${e.message})`, 'run-crawler', e);
             return false;
         }
     },

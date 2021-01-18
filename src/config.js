@@ -49,7 +49,7 @@ export default {
         crawler_api: {
             hosts: process.env.CRAWLER_API_HOST
                 ? process.env.CRAWLER_API_HOST.split(';')
-                : ['http://46.63.123.61:3031'],
+                : ['http://46.63.123.61:3030', 'http://46.63.123.61:3031'],
             run_url: 'download',
             collection_name: 'adverts'
         },
@@ -162,7 +162,7 @@ export default {
         crawler_api: {
             hosts: process.env.CRAWLER_API_HOST
                 ? process.env.CRAWLER_API_HOST.split(';')
-                : ['http://46.63.123.61:3031'],
+                : ['http://46.63.123.61:3030', 'http://46.63.123.61:3031'],
             run_url: 'download',
             collection_name: 'adverts'
         },
