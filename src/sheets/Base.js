@@ -23,7 +23,7 @@ export default class BaseSheet {
                 await this._sheet.useServiceAccountAuth(gapiCreds);
                 await this._sheet.loadInfo(); // 1 req
             } catch (e) {
-                logger.error('Error while load sheet:', e.message, e);
+                logger.error('Error while load sheet - ', e.message, e);
             }
         }
     }

@@ -23,7 +23,7 @@ export default {
 
             await AdvertListService.saveCheckedAdverts(checkedAdverts, adverts);
         } catch (e) {
-            logger.error(`Error while running PhoneChecks cron: ${e.message}`, 'phone-checks', e);
+            logger.error(`Error while running PhoneChecks cron - ${e.message}`, 'phone-checks', e);
         }
     }
 }

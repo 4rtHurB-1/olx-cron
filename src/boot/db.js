@@ -15,7 +15,7 @@ export default {
       logger.info(`Connected to ${dbUrl}`);
       return true;
     } catch (e) {
-      logger.error(`Error while connect to mongodb: ${e.message}`, e);
+      logger.error(`Error while connect to mongodb - ${e.message}`, e);
       return false;
     }
   }

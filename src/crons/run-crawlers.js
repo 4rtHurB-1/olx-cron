@@ -16,7 +16,7 @@ export default {
 
             await CrawlerRunnerService.runCrawler(advertsCntPerRun);
         } catch (e) {
-            logger.error(`Error while running RunCrawler cron: ${e.message}`, 'run-crawler', e);
+            logger.error(`Error while running RunCrawler cron - ${e.message}`, 'run-crawler', e);
         }
     }
 }
