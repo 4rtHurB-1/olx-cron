@@ -33,6 +33,8 @@ export default {
                 headers: {'Content-Type': 'application/json'}
             });
 
+            logger.debug('Crawler res', res);
+
             if(res.status !== 200) {
                 throw new Error(`Crawler run failed (status=${res.status})`)
             }
