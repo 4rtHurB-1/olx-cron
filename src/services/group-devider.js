@@ -85,7 +85,7 @@ export default {
             return {};
         }
 
-        logger.debug(`Calculated adverts to assign (new-adv=${adverts.length}, tot-dem=${totalStats.demand})`, {
+        logger.info(`Calculated adverts to assign (new-adv=${adverts.length}, tot-dem=${totalStats.demand})`, {
             old: oldGroupStatsLog,
             new: groups.map(g => [g.name, g.total, g.demand])
         });

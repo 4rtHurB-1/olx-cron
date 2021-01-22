@@ -89,7 +89,7 @@ export default {
                 await SheetsService.undoSaveNumbersToWorksheet(saveRes);
             }
 
-            logger.error(`Error while save checked adverts: ${e.message}`, e);
+            logger.error(`Error while save checked adverts - ${e.message}`, e);
         });
 
         session.endSession();
@@ -97,6 +97,7 @@ export default {
 
     async saveAssignments(assignments, groups) {
         let resLog = '';
+        let totalAssigned = 0;
         let res = [];
 
         try {
@@ -110,15 +111,16 @@ export default {
                 let result = await this._saveGroupAssignments(group, assignments[group.name]); // 5 req
                 if(result) {
                     res.push(result);
+                    totalAssigned += result.assigned;
                     resLog += `${result.group} = ${result.assigned} | `;
                 }
             }
 
-            if(resLog.length) {
-                logger.debug(`Assigned adverts ( ${resLog.slice(0, resLog.length - 2)} )`, res);
+            if(totalAssigned) {
+                logger.debug(`Assigned ${totalAssigned} adverts (${resLog.slice(0, resLog.length - 2)})`, res);
             }
         } catch (e) {
-            logger.error(`Error while save assignments: ${e.message}`);
+            logger.error(`Error while save assignments - ${e.message}`);
         }
     },
 
@@ -161,7 +163,7 @@ export default {
                 phones: checkedAdverts.map(adv => adv.phone)
             });
         } catch (e) {
-            logger.error(`Error while save pre checked adverts: ${e.message}`, e);
+            logger.error(`Error while save pre checked adverts - ${e.message}`, e);
         } finally {
             session.endSession();
         }
@@ -201,7 +203,7 @@ export default {
                 await SheetsService.undoSaveAdvertsToWorksheet(PhoneList, group.name, saveRes); // 1 req
             }
 
-            logger.error(`Error while save group (gr=${group.name}) assignments: ${e.message}`);
+            logger.error(`Error while save group (gr=${group.name}) assignments - ${e.message}`);
         });
 
         session.endSession();

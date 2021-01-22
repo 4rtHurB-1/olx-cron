@@ -21,7 +21,7 @@ export default {
 
             await AdvertListService.savePreCheckedAdverts(checkedAdverts, adverts);
         } catch (e) {
-            logger.error(`Error while running 'crawler.execute' event: ${e.message}`, e);
+            logger.error(`Error while running 'crawler.execute' event - ${e.message}`, e);
         }
 
         logger.info(`End 'crawler.execute' event`);
