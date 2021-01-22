@@ -21,7 +21,7 @@ export default {
             collection: crawlerApi.collection_name
         }
 
-        let res;
+        let res = {};
         let startAt = moment();
         try {
             logger.info(`Run crawler (max=${countAdv}, host=${availableHost})`, 'run-crawler');
