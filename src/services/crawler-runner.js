@@ -33,19 +33,17 @@ export default {
                 headers: {'Content-Type': 'application/json'}
             });
 
-            logger.debug('Crawler res', res);
-
-            if(res.status !== 200) {
-                throw new Error(`Crawler run failed (status=${res.status})`)
+            if(!this._isStatus200(res)) {
+                throw new Error(`Crawler run failed (status=${res ? res.status : 'not defined'})`)
             }
 
             logger.debug(`Crawler executed (adv=${res.data.length - 1}, max=${countAdv})`, 'run-crawler', data);
         } catch (e) {
-            logger.error(`Error while crawler execute (status=${res.status}) - ${e.message}`, 'run-crawler', e);
+            logger.error(`Error while crawler execute - ${e.message}`, 'run-crawler', e);
         } finally {
             await this.saveStat(res, startAt);
 
-            if(res.status === 200) {
+            if(this._isStatus200(res)) {
                 Events.emit('crawler.execute', res.data.length - 1);
             }
         }
@@ -55,7 +53,7 @@ export default {
         try {
             const promises = [];
             for(let host of hosts) {
-                promises.push(axios.get(host).catch(e => {
+                promises.push(axios.get(host,{timeout: 3}).catch(e => {
                     //logger.warning(`Ping crawler API host ${host} failed: ${e.message}`, 'run-crawler', e);
                 }));
             }
@@ -64,7 +62,7 @@ export default {
 
             let availableHost = null;
             for(let [index, res] of results.entries()) {
-                if(res && res.status === 200) {
+                if(this._isStatus200(res)) {
                     availableHost = hosts[index];
                     break;
                 }
@@ -82,7 +80,7 @@ export default {
     },
 
     async saveStat(res, startAt) {
-        const isSuccess = res && +res.status === 200;
+        const isSuccess = this._isStatus200(res);
 
         let stat;
         if(isSuccess) {
@@ -94,5 +92,9 @@ export default {
         }
 
         await StatsService.saveCrawlerStat(isSuccess, stat);
+    },
+
+    _isStatus200(res) {
+        return res && res.status === 200;
     }
 }

@@ -12,9 +12,9 @@ export default {
         const cronSchedules = await getConfigValue('cron_schedules');
 
         cron.schedule(cronSchedules.update_stats, async () => {
-            logger.info(`* * * * * Start update-stats cron ${cronSchedules.update_stats}`, 'update-stats');
+            //logger.info(`* * * * * Start update-stats cron ${cronSchedules.update_stats}`, 'update-stats');
             await UpdateStats.execute();
-            logger.info(`* * * * * End update-stats cron`, 'update-stats');
+            //logger.info(`* * * * * End update-stats cron`, 'update-stats');
         });
 
         cron.schedule(cronSchedules.run_crawler, async () => {
