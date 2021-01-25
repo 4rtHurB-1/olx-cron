@@ -7,6 +7,7 @@ export default {
                 phone: {$exists:true},
                 checked: { $eq: null },
                 pre_checked: { $eq: null },
+                locations: 'Хмельницький'
             })
             .limit(limit)
             .select({ _id: 1, phone: 1, url: 1, checked: 1, username: 1, gender: 1});
@@ -16,7 +17,8 @@ export default {
         return Advert
             .find({
                 phone: {$exists:true},
-                checked: { $eq: null }
+                checked: { $eq: null },
+                locations: 'Хмельницький'
             })
             .sort({ pre_checked: -1 })
             .limit(limit)

@@ -16,6 +16,7 @@ const AdvertSchema = new Schema({
     type: Boolean,
     default: false
   },
+  locations: String,
   gender: String,
   assigned_to: String
 }, {
