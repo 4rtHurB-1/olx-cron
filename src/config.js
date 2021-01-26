@@ -19,7 +19,10 @@ export default {
             }
         },
 
-        api_token: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJvbHggY3JvbiI6dHJ1ZX0.6i8LGX8QZo1uhVjc0T67YkLFYQQ_xnzjl9JH2XJAAOkTY0gHxjJJPkp8uj4gvMueOtLsyWnahOBJW8Vt9e5NRQ",
+        // can be db stored
+        api: {
+            token: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJvbHggY3JvbiI6dHJ1ZX0.6i8LGX8QZo1uhVjc0T67YkLFYQQ_xnzjl9JH2XJAAOkTY0gHxjJJPkp8uj4gvMueOtLsyWnahOBJW8Vt9e5NRQ"
+        },
 
         // can be db stored
         category_urls: [
@@ -128,7 +131,10 @@ export default {
             }
         },
 
-        api_token: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJvbHggY3JvbiI6dHJ1ZX0.6i8LGX8QZo1uhVjc0T67YkLFYQQ_xnzjl9JH2XJAAOkTY0gHxjJJPkp8uj4gvMueOtLsyWnahOBJW8Vt9e5NRQ",
+        // can be db stored
+        api: {
+            token: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJvbHggY3JvbiI6dHJ1ZX0.6i8LGX8QZo1uhVjc0T67YkLFYQQ_xnzjl9JH2XJAAOkTY0gHxjJJPkp8uj4gvMueOtLsyWnahOBJW8Vt9e5NRQ"
+        },
 
         // can be db stored
         category_urls: [

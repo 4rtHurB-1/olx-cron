@@ -12,7 +12,7 @@ router.get('/', (req, res) => {
 });
 
 router.get('/webhooks/expire-adverts', async (req, res) => {
-    if(!req.query.token || req.query.token !== getConfigValue('api_token', false)) {
+    if(!req.query.token || req.query.token !== await getConfigValue('api.token')) {
         res.status(404).json({error: 'No access'});
     } else if(!req.query.urls) {
         res.status(400).json({error: `Param 'urls' is required`});
@@ -23,7 +23,7 @@ router.get('/webhooks/expire-adverts', async (req, res) => {
 });
 
 router.get('/req-to-olx', async (req, res) => {
-    if(!req.query.token || req.query.token !== getConfigValue('api_token', false)) {
+    if(!req.query.token || req.query.token !== await getConfigValue('api.token')) {
         res.status(404).json({error: 'No access'});
     } else if(!req.query.url) {
         res.status(400).json({error: `Param 'url' is required`});
