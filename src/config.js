@@ -49,7 +49,7 @@ export default {
         crawler_api: {
             hosts: process.env.CRAWLER_API_HOST
                 ? process.env.CRAWLER_API_HOST.split(';')
-                : ['http://18.192.69.0:3031', 'http://46.63.123.61:3030', 'http://46.63.123.61:3031'],
+                : ['http://18.192.69.0:3031', 'http://46.63.123.61:3030'],
             run_url: 'download',
             collection_name: 'adverts'
         },
@@ -60,10 +60,6 @@ export default {
             run_crawler: CRON_SCHEDULES[1] || '15,25,50 * * * *',
             phone_checks: CRON_SCHEDULES[2] || '2,32 22,23,0-5 * * *', // hours at UTC
             assign_adverts: CRON_SCHEDULES[3] || '10,40 * * * *',
-            /*update_stats: CRON_SCHEDULES[0] || '*!/15 * * * *',
-            run_crawler: CRON_SCHEDULES[1] || '*!/10 * * * *',
-            phone_checks: CRON_SCHEDULES[2] || '15,35,55 * * * *',
-            assign_adverts: CRON_SCHEDULES[3] || '5,25,40 * * * *',*/
         },
 
         gapi: {
@@ -85,7 +81,7 @@ export default {
                 worksheets: {
                     main: {
                         id: 0,
-                        range: 'A1:A21000'
+                        range: 'A1:A25000'
                     },
                     new: {
                         id: 1523355869,
