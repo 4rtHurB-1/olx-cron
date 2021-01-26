@@ -4,7 +4,7 @@ export default {
     async getAllParsed(limit = 10) {
         return Advert
             .find({
-                phone: {$exists:true},
+                phone: { $exists: true },
                 checked: { $eq: null },
                 pre_checked: { $eq: null },
                 locations: 'Хмельницький'
@@ -16,8 +16,11 @@ export default {
     async getAllUnchecked(limit = 10) {
         return Advert
             .find({
-                phone: {$exists:true},
+                phone: { $exists: true },
                 checked: { $eq: null },
+                pre_checked: {
+                    $in: [null, true]
+                },
                 locations: 'Хмельницький'
             })
             .sort({ pre_checked: -1 })
@@ -28,9 +31,8 @@ export default {
     async getAllPreChecked(limit) {
         let query =  Advert
             .find({
-                phone: {$exists:true},
-                checked: null,
-                pre_checked: true
+                checked: { $eq: null },
+                pre_checked: { $eq: true },
             })
             .select({ _id: 1, phone: 1, url: 1, checked: 1, pre_checked: 1, username: 1, gender: 1});
 
@@ -44,7 +46,7 @@ export default {
     async getAllUnassigned(limit) {
         let query = Advert
             .find({
-                assigned_to: {$eq: null},
+                assigned_to: { $eq: null },
                 checked: { $eq: true }
             })
             .select({ _id: 1, phone: 1, url: 1, assigned_to: 1, gender: 1});
