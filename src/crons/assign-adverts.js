@@ -11,7 +11,7 @@ export default {
             const demand = await AdvertListService.getAssignDemand();
 
             if (!demand) {
-                logger.warning(`Assign demand (cnt=${demand})`, 'assign-adverts');
+                logger.warning(`Assign demand (cnt=${demand})`, 'assigns');
                 return;
             }
 
@@ -19,11 +19,11 @@ export default {
             const adverts = await AdvertListService.getUnassignedAdverts(demand);
 
             if(_.isEmpty(adverts)) {
-                logger.warning(`Not found adverts. Assign demand (cnt=${demand})`, 'assign-adverts');
+                logger.warning(`Not found adverts. Assign demand (cnt=${demand})`, 'assigns');
                 return;
             }
 
-            logger.debug(`Assign demand (cnt=${demand})`, 'assign-adverts');
+            logger.debug(`Assign demand (cnt=${demand})`, 'assigns');
 
             const assignments = GroupDividerService.assignToGroups(adverts, stat.groups, stat.groupsTotal);
 
@@ -33,7 +33,7 @@ export default {
 
             await AdvertListService.saveAssignments(assignments, stat.groups);
         } catch (e) {
-            logger.error(`Error while running AssignAdverts cron - ${e.message}`, 'assign-adverts', e);
+            logger.error(`Error while running AssignAdverts cron - ${e.message}`, 'assigns', e);
         }
     }
 }

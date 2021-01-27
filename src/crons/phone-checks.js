@@ -7,7 +7,7 @@ export default {
     async execute() {
         try {
             const demand = await AdvertListService.getChecksDemand();
-            logger.debugOrWarn(demand, `Checks demand (cnt=${demand})`, 'phone-checks');
+            logger.debugOrWarn(demand, `Checks demand (cnt=${demand})`, 'checks');
 
             if (!demand) {
                 return;
@@ -24,7 +24,7 @@ export default {
 
             await AdvertListService.saveCheckedAdverts(checkedAdverts, adverts);
         } catch (e) {
-            logger.error(`Error while running PhoneChecks cron - ${e.message}`, 'phone-checks', e);
+            logger.error(`Error while running PhoneChecks cron - ${e.message}`, 'checks', e);
         }
     }
 }

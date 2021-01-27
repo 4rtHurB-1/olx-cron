@@ -12,7 +12,7 @@ export default {
             await StatsService.saveStatToWorksheet(stat, isNewStat);
 
         }  catch (e) {
-            logger.error(`Error while running UpdateStats cron - ${e.message}`, 'update-stats', e);
+            logger.error(`Error while running UpdateStats cron - ${e.message}`, 'stats', e);
         }
     }
 }

@@ -8,7 +8,7 @@ export default {
     async execute() {
         try {
             const demand = await AdvertListService.getCrawlerDemand();
-            logger.debugOrWarn(demand, `Crawler demand (cnt=${demand})`, 'run-crawler');
+            logger.debugOrWarn(demand, `Crawler demand (cnt=${demand})`, 'crawler');
 
             if(!demand) {
                 return;
@@ -16,7 +16,7 @@ export default {
 
             await CrawlerRunnerService.runCrawler(advertsCntPerRun);
         } catch (e) {
-            logger.error(`Error while running RunCrawler cron - ${e.message}`, 'run-crawler', e);
+            logger.error(`Error while running RunCrawler cron - ${e.message}`, 'crawler', e);
         }
     }
 }

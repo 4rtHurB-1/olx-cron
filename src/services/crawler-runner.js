@@ -24,7 +24,7 @@ export default {
         let res = {};
         let startAt = moment();
         try {
-            logger.info(`Run crawler (max=${countAdv}, host=${availableHost})`, 'run-crawler');
+            logger.info(`Run crawler (max=${countAdv}, host=${availableHost})`, 'crawler');
 
             res = await axios({
                 method: 'post',
@@ -37,9 +37,9 @@ export default {
                 throw new Error(`Crawler run failed (status=${res ? res.status : 'not defined'})`)
             }
 
-            logger.debug(`Crawler executed (adv=${res.data.length - 1}, max=${countAdv})`, 'run-crawler', data);
+            logger.debug(`Crawler executed (adv=${res.data.length - 1}, max=${countAdv})`, 'crawler', data);
         } catch (e) {
-            logger.error(`Error while crawler execute - ${e.message}`, 'run-crawler', e);
+            logger.error(`Error while crawler execute - ${e.message}`, 'crawler', e);
         } finally {
             await this.saveStat(res, startAt);
 
@@ -53,8 +53,8 @@ export default {
         try {
             const promises = [];
             for(let host of hosts) {
-                promises.push(axios.get(host,{timeout: 3}).catch(e => {
-                    //logger.warning(`Ping crawler API host ${host} failed: ${e.message}`, 'run-crawler', e);
+                promises.push(axios.get(host,{timeout: 3 * 1000}).catch(e => {
+                    logger.warning(`Ping crawler API host ${host} failed: ${e.message}`, 'crawler', e);
                 }));
             }
 
@@ -69,12 +69,12 @@ export default {
             }
 
             if(!availableHost) {
-                logger.warning(`Ping crawler API failed (status!=200)`, 'run-crawler');
+                logger.warning(`Ping crawler API failed (status!=200)`, 'crawler');
             }
 
             return availableHost;
         } catch (e) {
-            logger.error(`Ping crawler API failed (error: ${e.message})`, 'run-crawler', e);
+            logger.error(`Ping crawler API failed (error: ${e.message})`, 'crawler', e);
             return false;
         }
     },

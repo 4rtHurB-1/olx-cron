@@ -8,7 +8,7 @@ export default {
     async onExecute(length) {
         logger.info(`Start 'crawler.execute' event`);
 
-        logger.setLabel('on:crawler.execute');
+        logger.setLabel('crawler');
         try {
             const adverts = await AdvertListService.getParsedAdverts(length);
 
