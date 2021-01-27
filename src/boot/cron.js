@@ -18,7 +18,7 @@ export default {
         });
 
         cron.schedule(cronSchedules.run_crawler, async () => {
-            logger.info(`\n* * * * * Start run-crawler cron ${cronSchedules.run_crawler}`, 'crawler');
+            logger.info(`* * * * * Start run-crawler cron ${cronSchedules.run_crawler}`, 'crawler');
             await RunCrawler.execute();
             logger.info(`* * * * * End run-crawler cron * * * * *\n`, 'crawler');
         });
@@ -26,7 +26,7 @@ export default {
         cron.schedule(cronSchedules.phone_checks, async () => {
             logger.setLabel('checks');
 
-            logger.info(`\n* * * * * Start phone-checks cron ${cronSchedules.phone_checks}`);
+            logger.info(`* * * * * Start phone-checks cron ${cronSchedules.phone_checks}`);
             await PhoneChecks.execute();
             logger.info(`* * * * * End phone-checks cron * * * * *\n`);
         });
@@ -34,7 +34,7 @@ export default {
         cron.schedule(cronSchedules.assign_adverts, async () => {
             logger.setLabel('assigns');
 
-            logger.info(`\n* * * * * Start assign-adverts cron ${cronSchedules.assign_adverts}`);
+            logger.info(`* * * * * Start assign-adverts cron ${cronSchedules.assign_adverts}`);
             await AssignAdverts.execute();
             logger.info(`* * * * * End assign-adverts cron * * * * *\n`);
         });
