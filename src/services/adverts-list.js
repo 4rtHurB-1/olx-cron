@@ -67,16 +67,22 @@ export default {
     async saveCheckedAdverts(checkedAdverts, allAdverts) {
         const session = await mongoose.startSession();
 
-        let saveRes;
+        let saveRes, transRetries = 0;
 
         await session.withTransaction(async (session) => {
+            if (transRetries > 0) {
+                logger.debug(`Transaction retries (ret=${transRetries})`);
+            }
+            transRetries++;
             const saveChecked = await this._saveCheckedAdverts(checkedAdverts, session);
             this._checkIfSaveToDB(checkedAdverts.length, saveChecked.length, 'checked adverts');
 
             const saveFalseChecked = await this._saveFalseCheckedAdverts(allAdverts, saveChecked, session);
             this._checkIfSaveToDB(allAdverts.length - checkedAdverts.length, saveFalseChecked.length, 'false-checked adverts');
 
-            saveRes = await SheetsService.saveNumbersToWorksheet(checkedAdverts);
+            if (transRetries === 1) {
+                saveRes = await SheetsService.saveNumbersToWorksheet(checkedAdverts);
+            }
 
             await StatsService.saveCheckStat(allAdverts.length, saveChecked.length, {session});
 
