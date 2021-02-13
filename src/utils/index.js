@@ -11,9 +11,15 @@ export function correctPhoneFormat(phone) {
   phone = phone.replace(/[^\d]+/g, '');
 
   // Replace UA code (380*** to 0***)
-  const UACodeRegExp = /^380/g;
+  const UACodeRegExp = /^38/g;
   if(UACodeRegExp.test(phone)) {
     phone = phone.replace(/^38/g, '');
+  }
+
+  // Replace many first 0 (like 0098***)
+  const first0RegExp = /^0{2,}/g;
+  if(first0RegExp.test(phone)) {
+    phone = phone.replaceAll(/^0{2}/g, '0');
   }
 
   // Replace wrong format (like 8098***)
@@ -74,7 +80,7 @@ const getSplittedKey = (key) => {
 };
 
 const getValueFromConf = (key, dbConf, config) => {
-  let conf = dbConf ? dbConf : config;
+  let conf = dbConf ? dbConf.get('value') : config;
 
   if(key.multiKey.length > 0) {
     for(let k of key.multiKey) {

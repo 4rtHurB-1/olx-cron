@@ -67,29 +67,44 @@ export default {
     async saveCheckedAdverts(checkedAdverts, allAdverts) {
         const session = await mongoose.startSession();
 
-        let saveRes, transRetries = 0;
+        let saveRes = {saved: false, added: []}, transRetries = 0;
 
         await session.withTransaction(async (session) => {
             if (transRetries > 0) {
                 logger.debug(`Transaction retries (ret=${transRetries})`);
             }
             transRetries++;
+
             const saveChecked = await this._saveCheckedAdverts(checkedAdverts, session);
             this._checkIfSaveToDB(checkedAdverts.length, saveChecked.length, 'checked adverts');
 
             const saveFalseChecked = await this._saveFalseCheckedAdverts(allAdverts, saveChecked, session);
             this._checkIfSaveToDB(allAdverts.length - checkedAdverts.length, saveFalseChecked.length, 'false-checked adverts');
 
-            if (transRetries === 1) {
-                saveRes = await SheetsService.saveNumbersToWorksheet(checkedAdverts);
+            if (!saveRes.saved) {
+                try {
+                    saveRes = await SheetsService.saveNumbersToWorksheet(checkedAdverts);
+                } catch (e) {
+                    logger.error(`saveNumbersToWorksheet error here - ${e.message}`);
+                    throw e;
+                }
             }
 
-            await StatsService.saveCheckStat(allAdverts.length, saveChecked.length, {session});
+            try {
+                await StatsService.saveCheckStat(allAdverts.length, saveChecked.length, {session});
+            } catch (e) {
+                logger.error(`saveCheckStat error here - ${e.message}`);
+                throw e;
+            }
 
-            logger.debug(`Mark adverts as checked (true=${saveChecked.length}, false=${saveFalseChecked.length})`, {
-                phones: checkedAdverts.map(d => d.phone),
-                added: saveRes.added
-            });
+            try {
+                logger.debug(`Mark adverts as checked (true=${saveChecked.length}, false=${saveFalseChecked.length})`, {
+                    phones: checkedAdverts.map(d => d.phone)
+                });
+            } catch (e) {
+                logger.error(`Log error here - ${e.message}`);
+                throw e;
+            }
         }).catch(async e => {
             if (saveRes.saved && saveRes.added.length) {
                 await SheetsService.undoSaveNumbersToWorksheet(saveRes);
@@ -178,7 +193,7 @@ export default {
     async _saveGroupAssignments(group, adverts) {
         const session = await mongoose.startSession();
 
-        let saveRes, savedAdverts, transRetries = 0;
+        let saveRes = {saved: false, added: []}, savedAdverts, transRetries = 0;
         await session.withTransaction(async (session) => {
             if (transRetries === 0) {
                 saveRes = await SheetsService.saveAdvertsToWorksheet(adverts, group.name); // 2 req

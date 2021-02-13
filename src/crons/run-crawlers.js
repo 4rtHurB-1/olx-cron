@@ -2,7 +2,7 @@ import logger from '../utils/logger';
 import AdvertListService from '../services/adverts-list';
 import CrawlerRunnerService from '../services/crawler-runner';
 
-const advertsCntPerRun = 30;
+const advertsCntPerRun = 40;
 
 export default {
     async execute() {
