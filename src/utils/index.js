@@ -19,7 +19,7 @@ export function correctPhoneFormat(phone) {
   // Replace many first 0 (like 0098***)
   const first0RegExp = /^0{2,}/g;
   if(first0RegExp.test(phone)) {
-    phone = phone.replaceAll(/^0{2}/g, '0');
+    phone = phone.replace(first0RegExp, '0');
   }
 
   // Replace wrong format (like 8098***)
