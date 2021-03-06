@@ -2,7 +2,6 @@ import logger from '../utils/logger';
 import {correctPhoneFormat, detectGenderByName, getConfigValue} from "../utils";
 
 import PhoneCheck from "../sheets/phone-check";
-import SheetsService from "../services/sheets-service";
 
 const worksheetName = 'main';
 
@@ -23,8 +22,7 @@ export default {
                 uniq.push({
                     phone,
                     url: adverts[i].url,
-                    gender: await detectGenderByName(adverts[i].username),
-                    checked: true
+                    gender: adverts[i].gender || await detectGenderByName(adverts[i].username)
                 });
             }
         }

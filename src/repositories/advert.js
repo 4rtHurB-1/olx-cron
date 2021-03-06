@@ -1,6 +1,16 @@
+
 import Advert from "../models/advert";
+import {getConfigValue} from "../utils";
+
 
 export default {
+    async getGenderCategoryCond() {
+        const genderCategories = await getConfigValue('gender_categories');
+        return Array.isArray(genderCategories) && genderCategories.length
+            ? {gender: {$in: genderCategories}}
+            : {};
+    },
+
     async getAllParsed(limit = 10) {
         return Advert
             .find({
@@ -21,7 +31,8 @@ export default {
                 pre_checked: {
                     $in: [null, true]
                 },
-                locations: 'Хмельницький'
+                locations: 'Хмельницький',
+                ...await this.getGenderCategoryCond()
             })
             .sort({ pre_checked: -1 })
             .limit(limit)
@@ -33,6 +44,7 @@ export default {
             .find({
                 checked: { $eq: null },
                 pre_checked: { $eq: true },
+                ...await this.getGenderCategoryCond()
             })
             .select({ _id: 1, phone: 1, url: 1, checked: 1, pre_checked: 1, username: 1, gender: 1});
 
@@ -47,7 +59,8 @@ export default {
         let query = Advert
             .find({
                 assigned_to: { $eq: null },
-                checked: { $eq: true }
+                checked: { $eq: true },
+                ...await this.getGenderCategoryCond()
             })
             .select({ _id: 1, phone: 1, url: 1, assigned_to: 1, gender: 1});
 

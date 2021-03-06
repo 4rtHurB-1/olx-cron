@@ -1,10 +1,44 @@
 import moment from 'moment';
 import genderDetection from 'gender-detection';
-import {transliterate} from 'inflected';
+import axios from 'axios';
+const Inflector = require('inflected');
+setUkrainianApproximations();
+import logger from "./logger";
 import allConfig from '../config';
 const config = allConfig[process.env.ENV || 'prod'];
 
 import ConfigRepository from '../repositories/config';
+
+async function detectGenderByGenderizeApi(name) {
+  const GENDERIZE_API = 'https://api.genderize.io';
+
+  let res = await axios.get(GENDERIZE_API, {
+    params: {
+      name: Inflector.transliterate(name).replace(/\?/g, ''),
+      country_id: 'UA'
+    }
+  });
+
+  logger.debug(`Gender detection (orig=${name} trans=${res.data.name} gender=${res.data.gender})`);
+
+  return res.data.gender;
+}
+
+function setUkrainianApproximations() {
+  Inflector.transliterations('en', function(t) {
+    t.approximate('І', 'i');
+    t.approximate('і', 'i');
+
+    t.approximate('Є', 'Ye');
+    t.approximate('є', 'ye');
+
+    t.approximate('Ї', 'Ye');
+    t.approximate('ї', 'ye');
+
+    t.approximate('Ґ', 'G');
+    t.approximate('ґ', 'g');
+  });
+}
 
 export function correctPhoneFormat(phone) {
   // Replace all not number characters (+380 98*** to 098***)
@@ -42,7 +76,7 @@ export function correctPhoneFormat(phone) {
   return phone.replace(/^([\d]{3})([\d]{3})([\d]{2})([\d]{2})/g, '$1 $2 $3 $4').substr(0, 13);
 }
 
-export function detectGenderByName(name) {
+export async function detectGenderByName(name) {
   if(!name) {
     return 'Невідомо';
   }
@@ -52,10 +86,12 @@ export function detectGenderByName(name) {
   let gender = genderDetection.detect(name);
 
   if(gender === 'unknown') {
-    name = transliterate(name.replace(/ъ|ь|Ъ|Ь/gm, ''));
+    gender = genderDetection.detect(Inflector.transliterate(name).replace(/\?/g, ''));
   }
 
-  gender = genderDetection.detect(name);
+  if(gender === 'unknown' && name.length > 3) {
+    gender = await detectGenderByGenderizeApi(name);
+  }
 
   switch (gender) {
     case 'male':

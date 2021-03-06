@@ -6,7 +6,7 @@ import PhoneList from "../sheets/phone-list";
 import SheetsService from "./sheets-service";
 import StatsService from "./stats";
 import AdvertRepository from "../repositories/advert";
-import {getConfigValue, delay} from "../utils";
+import {delay} from "../utils";
 
 export default {
     groupStatLoader: null,
@@ -75,7 +75,8 @@ export default {
             }
             transRetries++;
 
-            const saveChecked = await this._saveCheckedAdverts(checkedAdverts, session);
+            this._setCheckedTrue(checkedAdverts);
+            const saveChecked = await this._updateEveryAdvert(checkedAdverts, session);
             this._checkIfSaveToDB(checkedAdverts.length, saveChecked.length, 'checked adverts');
 
             const saveFalseChecked = await this._saveFalseCheckedAdverts(allAdverts, saveChecked, session);
@@ -145,7 +146,7 @@ export default {
         }
     },
 
-    async _saveCheckedAdverts(checkedAdverts, session) {
+    async _updateEveryAdvert(checkedAdverts, session) {
         const ids = [];
         const promises = [];
         for(let adv of checkedAdverts) {
@@ -161,8 +162,8 @@ export default {
         return ids;
     },
 
-    async _saveAssignedAdverts(adverts, groupName, session) {
-        const res = await AdvertRepository.updateByIds(adverts, {assigned_to: groupName}, session);
+    async _updateAllAdverts(adverts, doc, session) {
+        const res = await AdvertRepository.updateByIds(adverts, doc, session);
 
         return res && res.ok && res.nModified === adverts.length
             ? adverts.map(a => a.url)
@@ -172,12 +173,16 @@ export default {
     async savePreCheckedAdverts(checkedAdverts, allAdverts) {
         const session = await mongoose.startSession();
         try {
-            const checkedIds = checkedAdverts.map(adv => adv.url);
+            const checkedIds = [];
+            for(let adv of checkedAdverts) {
+                adv.pre_checked = true;
+                checkedIds.push(adv.url);
+            }
             const falseCheckedAdverts = allAdverts.filter(adv => !checkedIds.includes(adv.url));
 
             await session.withTransaction(async (session) => {
-                await AdvertRepository.updateByIds(checkedAdverts, {pre_checked: true}, session);
-                await AdvertRepository.updateByIds(falseCheckedAdverts, {pre_checked: false}, session);
+                await this._updateEveryAdvert(checkedAdverts, session);
+                await this._updateAllAdverts(falseCheckedAdverts, {pre_checked: false}, session);
             });
 
             logger.debug(`Mark adverts as pre checked (true=${checkedAdverts.length}, false=${falseCheckedAdverts.length})`, {
@@ -202,7 +207,7 @@ export default {
             }
             transRetries++;
 
-            savedAdverts = await this._saveAssignedAdverts(adverts, group.name, session);
+            savedAdverts = await this._updateAllAdverts(adverts, {assigned_to: group.name}, session);
             this._checkIfSaveToDB(adverts.length, savedAdverts.length, `${group.name} assigned adverts`);
 
             if (!saveRes.saved && saveRes.worksheet) {
@@ -248,5 +253,13 @@ export default {
         if(needSave > 0 && (!saved || needSave !== saved)) {
             throw new Error(`Failed to save ${key} (${saved ? saved : 0} from ${needSave})`)
         }
+    },
+
+    _setCheckedTrue(adverts) {
+        for(let adv of adverts) {
+            adv.checked = true;
+        }
+
+        return adverts;
     }
 }

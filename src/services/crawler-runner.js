@@ -37,7 +37,7 @@ export default {
                 throw new Error(`Crawler run failed (status=${res ? res.status : 'not defined'})`)
             }
 
-            logger.debug(`Crawler executed (adv=${res.data.length - 1}, max=${countAdv})`, 'crawler', data);
+            logger.debug(`Crawler executed (adv=${res.data.length - 1}, max=${countAdv}) \n${data.olxUrl}`, 'crawler', data);
         } catch (e) {
             logger.error(`Error while crawler execute - ${e.message}`, 'crawler', e);
         } finally {
