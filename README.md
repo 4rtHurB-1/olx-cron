@@ -8,4 +8,5 @@ OR
 git clone https://gist.github.com/7d1273a0f78bb91b5daea1a1cd80477b.git olx
 cd olx
 sudo bash setup.sh
+bash run.sh
 ```
