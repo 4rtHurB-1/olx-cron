@@ -60,9 +60,9 @@ export default {
         // can be db stored
         cron_schedules: {
             update_stats: CRON_SCHEDULES[0] || '*/15 * * * *',
-            run_crawler: CRON_SCHEDULES[1] || '15,25,50 * * * *',
-            phone_checks: CRON_SCHEDULES[2] || '2,32 22,23,0-5 * * *', // hours at UTC
-            assign_adverts: CRON_SCHEDULES[3] || '10,40 * * * *',
+            run_crawler: CRON_SCHEDULES[1] || '12,24,40,51 * * * *',
+            phone_checks: CRON_SCHEDULES[2] || '1,31 * * * *', // hours at UTC
+            assign_adverts: CRON_SCHEDULES[3] || '5,35 * * * *',
         },
 
         gapi: {
@@ -164,7 +164,7 @@ export default {
         crawler_api: {
             hosts: process.env.CRAWLER_API_HOST
                 ? process.env.CRAWLER_API_HOST.split(';')
-                : ['http://46.63.123.61:3030', 'http://46.63.123.61:3031'],
+                : ['http://46.63.123.61:3031'],
             run_url: 'download',
             collection_name: 'adverts'
         },
