@@ -15,7 +15,7 @@ export default {
             },
             tel: {
                 token: '1403411176:AAH_eZ_E9DRmsjitnqEVa9haRVv_dWph67Y',
-                chat_id: '385748679'
+                chat_id: '-1001359009051' //'385748679'
             }
         },
 
