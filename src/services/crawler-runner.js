@@ -41,8 +41,6 @@ export default {
         } catch (e) {
             logger.error(`Error while crawler execute - ${e.message}`, 'crawler', e);
         } finally {
-            await this.saveStat(res, startAt);
-
             if(this._isStatus200(res)) {
                 Events.emit('crawler.execute', res.data.length - 1);
             }
@@ -77,21 +75,6 @@ export default {
             logger.error(`Ping crawler API failed (error: ${e.message})`, 'crawler', e);
             return false;
         }
-    },
-
-    async saveStat(res, startAt) {
-        const isSuccess = this._isStatus200(res);
-
-        let stat;
-        if(isSuccess) {
-            stat = {
-                maxAdverts: res.config.data.max,
-                adverts: res.data.length - 1,
-                timeExecution: moment().diff(startAt, 'milliseconds')
-            }
-        }
-
-        await StatsService.saveCrawlerStat(isSuccess, stat);
     },
 
     _isStatus200(res) {

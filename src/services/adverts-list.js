@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import {google} from 'googleapis';
 import logger from "../utils/logger";
 
 import PhoneList from "../sheets/phone-list";
@@ -89,13 +88,6 @@ export default {
                     logger.error(`saveNumbersToWorksheet error here - ${e.message}`);
                     throw e;
                 }
-            }
-
-            try {
-                await StatsService.saveCheckStat(allAdverts.length, saveChecked.length, {session});
-            } catch (e) {
-                logger.error(`saveCheckStat error here - ${e.message}`);
-                throw e;
             }
 
             try {
@@ -219,8 +211,6 @@ export default {
 
             const groupStatSaved = await StatsService.saveGroupStat(group.name, session); // 3 req
             this._checkIfSaveToDB(1, groupStatSaved.length, `${group.name} stat`);
-
-            await StatsService.saveGroupAssignStat(group.name, savedAdverts.length, {session});
 
             logger.info(`Save assignments (gr=${group.name}, adv=${savedAdverts.length})`);
         }).catch(async e => {
