@@ -41,6 +41,7 @@
     "mongodb": "^3.6.3",
     "mongoose": "^5.10.13",
     "node-cron": "^2.0.3",
+    "nodejs-web-scraper": "^6.0.0",
     "winston": "^3.3.3",
     "winston-mongodb": "^5.0.5",
     "winston-telegram": "git+https://github.com/4rtHurB/winston-telegram.git#master"

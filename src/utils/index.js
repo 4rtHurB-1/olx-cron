@@ -169,6 +169,14 @@ export function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+export function isStatus200(res) {
+  return res && res.status === 200;
+}
+
+export function getRandomInt(to) {
+  return Math.floor(Math.random() * to) + 1;
+}
+
 export const urlRegExp =
   'https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)';
 

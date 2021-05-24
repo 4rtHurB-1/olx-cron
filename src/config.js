@@ -31,6 +31,20 @@ export default {
         ],
 
         // can be db stored
+        olx: {
+            routes: {
+                oauth: 'https://www.olx.ua/api/open/oauth/token',
+                adv_phones: 'https://www.olx.ua/api/v1/offers/$offerId/phones'
+            },
+            client_id: 100018,
+            client_secret: 'mo96g2Wue78VBZrhghjVJwmJk7Adn0LTs3ZI6Vdk3lgXk5hi',
+            device_id: 'a7a0ff05-55ac-4f41-992a-53eb192d3213',
+            device_token: 'eyJpZCI6ImE3YTBmZjA1LTU1YWMtNGY0MS05OTJhLTUzZWIxOTJkMzIxMyJ9.0d7fbe8125c36ca2bc2a41e514dbf31e03fd8601',
+
+            user_agent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36'
+        },
+
+        // can be db stored
         check_number_save: {
             key: 'Західний',
             ver: 'v1',
@@ -48,14 +62,14 @@ export default {
             period: '1 hour',
         },
 
-        // can be db stored
-        crawler_api: {
-            hosts: process.env.CRAWLER_API_HOST
-                ? process.env.CRAWLER_API_HOST.split(';')
-                : ['http://18.192.240.244:3031', 'http://46.63.123.61:3031'],
-            run_url: 'download',
-            collection_name: 'adverts'
-        },
+        // // can be db stored
+        // crawler_api: {
+        //     hosts: process.env.CRAWLER_API_HOST
+        //         ? process.env.CRAWLER_API_HOST.split(';')
+        //         : ['http://18.192.240.244:3031', 'http://46.63.123.61:3031'],
+        //     run_url: 'download',
+        //     collection_name: 'adverts'
+        // },
 
         // can be db stored
         cron_schedules: {
@@ -132,6 +146,20 @@ export default {
         },
 
         // can be db stored
+        olx: {
+            routes: {
+                oauth: 'https://www.olx.ua/api/open/oauth/token',
+                adv_phones: 'https://www.olx.ua/api/v1/offers/$offerId/phones'
+            },
+            client_id: 100018,
+            client_secret: 'mo96g2Wue78VBZrhghjVJwmJk7Adn0LTs3ZI6Vdk3lgXk5hi',
+            device_id: 'a7a0ff05-55ac-4f41-992a-53eb192d3213',
+            device_token: 'eyJpZCI6ImE3YTBmZjA1LTU1YWMtNGY0MS05OTJhLTUzZWIxOTJkMzIxMyJ9.0d7fbe8125c36ca2bc2a41e514dbf31e03fd8601',
+
+            user_agent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36'
+        },
+
+        // can be db stored
         api: {
             token: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJvbHggY3JvbiI6dHJ1ZX0.6i8LGX8QZo1uhVjc0T67YkLFYQQ_xnzjl9JH2XJAAOkTY0gHxjJJPkp8uj4gvMueOtLsyWnahOBJW8Vt9e5NRQ"
         },
@@ -160,14 +188,14 @@ export default {
             period: '1 hour',
         },
 
-        // can be db stored
-        crawler_api: {
-            hosts: process.env.CRAWLER_API_HOST
-                ? process.env.CRAWLER_API_HOST.split(';')
-                : ['http://46.63.123.61:3031'],
-            run_url: 'download',
-            collection_name: 'adverts'
-        },
+        // // can be db stored
+        // crawler_api: {
+        //     hosts: process.env.CRAWLER_API_HOST
+        //         ? process.env.CRAWLER_API_HOST.split(';')
+        //         : ['http://46.63.123.61:3031'],
+        //     run_url: 'download',
+        //     collection_name: 'adverts'
+        // },
 
         // can be db stored
         cron_schedules: {

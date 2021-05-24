@@ -5,10 +5,33 @@ import PhoneList from "../sheets/phone-list";
 import SheetsService from "./sheets-service";
 import StatsService from "./stats";
 import AdvertRepository from "../repositories/advert";
-import {delay} from "../utils";
+import {correctPhoneFormat, delay} from "../utils";
 
 export default {
     groupStatLoader: null,
+
+    async getNotSavedToDb(adverts) {
+        const savedAdverts = await AdvertRepository.getByUrls(adverts.map(adv => adv.url));
+        const savedAdvUrls = savedAdverts.map(adv => adv.url);
+
+        return adverts.filter(adv => !savedAdvUrls.includes(adv.url));
+    },
+
+    formatAds(ads) {
+        return ads.filter(ad => ad.phones && ad.phones.length)
+            .map(ad => ({
+                locations: 'Хмельницький',
+                phone: correctPhoneFormat(ad.phones[0]),
+                url: ad.url,
+                username: ad.userName,
+            }))
+    },
+
+    async saveToDb(ads) {
+        let formatAds = this.formatAds(ads);
+        await AdvertRepository.insertMany(formatAds);
+        return formatAds;
+    },
 
     async getAssignDemand() {
         const stat = await StatsService.getGroupStat();

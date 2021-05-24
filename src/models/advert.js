@@ -4,14 +4,8 @@ const AdvertSchema = new Schema({
   phone: String,
   url: String,
   username: String,
-  pre_checked: {
-    type: Boolean,
-    default: false
-  },
-  checked: {
-    type: Boolean,
-    default: false
-  },
+  pre_checked: Boolean,
+  checked: Boolean,
   expired: {
     type: Boolean,
     default: false
@@ -21,7 +15,7 @@ const AdvertSchema = new Schema({
   assigned_to: String
 }, {
   collection: 'adverts',
-  timestamps: { updatedAt: 'updated_at'}
+  timestamps: { updatedAt: 'updated_at', createdAt: 'created_at'}
 });
 
 const Advert = model('Advert', AdvertSchema);

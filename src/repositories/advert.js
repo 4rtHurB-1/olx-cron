@@ -88,10 +88,23 @@ export default {
         return query.exec();
     },
 
+    insertMany(adverts) {
+        return Advert
+            .insertMany(adverts);
+    },
+
     async updateOne(id, doc, session) {
         return Advert
             .updateOne({url: id}, {$set: doc})
             .session(session)
             .exec();
+    },
+
+    getByUrls(urls) {
+        return Advert
+            .find({
+                url: {$in: urls},
+            })
+            .select({ _id: 1, phone: 1, url: 1, checked: 1, pre_checked: 1, username: 1, gender: 1});
     }
 };

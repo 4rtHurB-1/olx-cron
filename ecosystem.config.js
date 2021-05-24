@@ -5,7 +5,7 @@ module.exports = {
           "build/App.bundle.js"
       ],
       "script": "node",
-      "max_memory_restart": "200M",
+      "max_memory_restart": "700M",
       "node_args": [],
       "exec_interpreter": "none",
       "exec_mode": "fork",

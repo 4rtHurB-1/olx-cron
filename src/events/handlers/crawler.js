@@ -5,17 +5,15 @@ import AdvertListService from "../../services/adverts-list";
 import PhoneCheckerService from "../../services/phone-checker";
 
 export default {
-    async onExecute(length) {
+    async onExecute(ads) {
         logger.setLabel('crawler');
 
         logger.info(`* * * * * Start 'crawler.execute' event * * * * *`);
 
         try {
-            const adverts = await AdvertListService.getParsedAdverts(length);
-
-            if(!_.isEmpty(adverts)) {
-                const checkedAdverts = await PhoneCheckerService.getUniqAdverts(adverts);
-                await AdvertListService.savePreCheckedAdverts(checkedAdverts, adverts);
+            if(!_.isEmpty(ads)) {
+                const checkedAdverts = await PhoneCheckerService.getUniqAdverts(ads);
+                await AdvertListService.savePreCheckedAdverts(checkedAdverts, ads);
             }
         } catch (e) {
             logger.error(`Error while running 'crawler.execute' event - ${e.message}`, e);
