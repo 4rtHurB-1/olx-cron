@@ -119,7 +119,6 @@ export default class Crawler {
             }
 
             this.parsed = this.parsed.concat(parsedAds);
-            logger.debug(`Next run parsed=${this.parsed.length}`);
 
             return this.run({
                 ...crawlerConfig,
@@ -293,7 +292,7 @@ class OLX {
     }
 
     async getAdvPhones(adv) {
-        logger.debug(`OLX Req - ${this.config.routes.adv_phones.replace('$offerId', adv.id)}`);
+        //logger.debug(`OLX Req - ${this.config.routes.adv_phones.replace('$offerId', adv.id)}`);
 
         const res = await axios({
             method: 'get',

@@ -24,9 +24,6 @@ export default {
             };
 
             new Crawler(config)
-                .onStart(() => {
-                    console.log('Crawler starts');
-                })
                 .onPageCrawled(
                     ads => AdvertListService.getNotSavedToDb(ads)
                 )
