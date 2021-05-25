@@ -196,7 +196,7 @@ export default class Crawler {
 
     _buildScraper(crawlerConfig) {
         const config = {
-            baseSiteUrl: `https://www.this.config.ua/`,
+            baseSiteUrl: `https://www.olx.ua/`,
             startUrl: crawlerConfig.url,
             logPath: './scrapper-logs/',
             showConsoleLogs: false
