@@ -69,6 +69,7 @@ export default {
 
     async getParsedUncheckedAdverts(limit) {
         const adverts = await AdvertRepository.getAllUnchecked(limit);
+        console.log('getParsedUncheckedAdverts', adverts);
         logger.infoOrWarn(adverts.length,`Get parsed unchecked adverts (adv=${adverts.length})`);
         return adverts;
     },
@@ -254,8 +255,11 @@ export default {
     },
 
     async _saveFalseCheckedAdverts(allAdverts, savedCheckedAdvertIDs, session) {
+        console.log('all', allAdverts);
         const unCheckedAdverts = allAdverts.filter(a => !savedCheckedAdvertIDs.includes(a.url));
+        console.log('uncheck', unCheckedAdverts);
         const res = await AdvertRepository.updateByIds(unCheckedAdverts, {checked: false}, session);
+        console.log('res', res);
 
         return res && res.ok && res.nModified === unCheckedAdverts.length
             ? unCheckedAdverts.map(a => a.url)
