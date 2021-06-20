@@ -80,6 +80,11 @@ export default {
         return adverts;
     },
 
+    async deleteOldParsed() {
+        const res = await AdvertRepository.deleteOldParsed();
+        logger.info(`Delete old parsed adverts (adv=${res.deletedCount})`);
+    },
+
     async saveExpiredAdverts(urls) {
         const res = await AdvertRepository.updateByIds(urls, {expired: true});
         return res && res.ok && res.nModified

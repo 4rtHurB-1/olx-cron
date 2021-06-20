@@ -1,3 +1,4 @@
+import moment from 'moment';
 
 import Advert from "../models/advert";
 import {getConfigValue} from "../utils";
@@ -37,6 +38,21 @@ export default {
             .sort({ pre_checked: -1 })
             .limit(limit)
             .select({ _id: 1, phone: 1, url: 1, checked: 1, pre_checked: 1, username: 1, gender: 1});
+    },
+
+    deleteOldParsed() {
+        return Advert
+            .deleteMany({
+                phone: { $exists: true },
+                checked: { $eq: null },
+                pre_checked: {
+                    $in: [null, true]
+                },
+                locations: 'Хмельницький',
+                created_at: {
+                    $lte: moment().subtract(2, 'days').toISOString()
+                }
+            })
     },
 
     async getAllPreChecked(limit) {

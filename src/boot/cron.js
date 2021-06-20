@@ -5,6 +5,7 @@ import {getConfigValue} from "../utils";
 import RunCrawler from '../crons/run-crawlers';
 import AssignAdverts from '../crons/assign-adverts';
 import PhoneChecks from '../crons/phone-checks';
+import DeleteAdverts from '../crons/delete-adverts';
 
 export default {
     async start() {
@@ -30,6 +31,14 @@ export default {
             logger.info(`* * * * * Start assign-adverts cron ${cronSchedules.assign_adverts}`);
             await AssignAdverts.execute();
             logger.info(`* * * * * End assign-adverts cron * * * * *\n`);
+        });
+
+        cron.schedule(cronSchedules.delete_adverts, async () => {
+            logger.setLabel('delete');
+
+            logger.info(`* * * * * Start delete-adverts cron ${cronSchedules.delete_adverts}`);
+            await DeleteAdverts.execute();
+            logger.info(`* * * * * End delete-adverts cron * * * * *\n`);
         });
     }
 }

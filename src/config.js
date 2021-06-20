@@ -77,6 +77,7 @@ export default {
             run_crawler: CRON_SCHEDULES[1] || '12,24,40,51 * * * *',
             phone_checks: CRON_SCHEDULES[2] || '1,31 * * * *', // hours at UTC
             assign_adverts: CRON_SCHEDULES[3] || '5,35 * * * *',
+            delete_adverts: '0 * * * *',
         },
 
         gapi: {
@@ -203,6 +204,7 @@ export default {
             run_crawler: CRON_SCHEDULES[1] || '*/10 * * * *',
             phone_checks: CRON_SCHEDULES[2] || '15,35,55 * * * *',
             assign_adverts: CRON_SCHEDULES[3] || '5,25,40 * * * *',
+            delete_adverts: '0 * * * *',
         },
 
         gapi: {
