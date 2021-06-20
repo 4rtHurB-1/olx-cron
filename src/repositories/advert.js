@@ -1,3 +1,5 @@
+import mongoose, { Types } from 'mongoose';
+const ObjectId = Types.ObjectId;
 import moment from 'moment';
 
 import Advert from "../models/advert";
@@ -90,12 +92,12 @@ export default {
     updateByIds(adverts, doc, session) {
         let ids = adverts;
         if(Array.isArray(adverts) && typeof adverts[0] === 'object') {
-            ids = adverts.map(a => a.url);
+            ids = adverts.map(a => new ObjectId(a._id));
         }
 
         //logger.info(`Update Adverts (adv=${adverts.length}, doc=${JSON.stringify(doc)})`, {ids, doc});
         const query = Advert
-            .updateMany({url: {$in: ids}}, {$set :doc});
+            .updateMany({_id: {$in: ids}}, {$set :doc});
 
         if(session) {
             query.session(session);
@@ -110,10 +112,14 @@ export default {
     },
 
     async updateOne(id, doc, session) {
-        return Advert
-            .updateOne({url: id}, {$set: doc})
-            .session(session)
-            .exec();
+        const query = Advert
+            .updateOne({_id: new ObjectId(id)}, {$set: doc});
+
+        if(session) {
+            query.session(session);
+        }
+
+        return query.exec();
     },
 
     getByUrls(urls) {
