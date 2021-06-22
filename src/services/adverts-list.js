@@ -175,6 +175,10 @@ export default {
         }
         let res = await Promise.all(promises);
         for(let [i, r] of res.entries()) {
+            if(i === 0) {
+                console.log('updateOne', r);
+            }
+
             if(r.ok && r.nModified) {
                 ids.push(checkedAdverts[i].url);
             }
@@ -262,6 +266,8 @@ export default {
     async _saveFalseCheckedAdverts(allAdverts, savedCheckedAdvertIDs, session) {
         const unCheckedAdverts = allAdverts.filter(a => !savedCheckedAdvertIDs.includes(a.url));
         const res = await AdvertRepository.updateByIds(unCheckedAdverts, {checked: false}, session);
+
+        console.log('updateByIds', res);
 
         return res && res.ok && res.nModified === unCheckedAdverts.length
             ? unCheckedAdverts.map(a => a.url)
