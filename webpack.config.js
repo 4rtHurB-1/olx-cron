@@ -7,6 +7,9 @@ module.exports = {
     path: path.resolve(__dirname, 'build'),
     filename: 'App.bundle.js'
   },
+  node: {
+    '__dirname': false
+  },
   target: 'node',
   externals: [nodeExternals()],
   module: {
