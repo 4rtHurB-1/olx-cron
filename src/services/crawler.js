@@ -243,7 +243,8 @@ class OLX {
 
     getOAuthTokensFromFile(filename) {
         try {
-            return fs.readFileSync(path.join(__dirname, filename), 'utf8');
+            let content = fs.readFileSync(path.join(__dirname, filename), 'utf8');
+            return JSON.parse(content);
         } catch (err) {
             console.error(err);
             return null;

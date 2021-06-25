@@ -11,7 +11,7 @@ DB.connect().then(async () => {
   cron.start();
 })
 app.use(bodyParser.json());
-app.use( bodyParser.urlencoded({ extended: true }) );
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/', helloRoute);
 
