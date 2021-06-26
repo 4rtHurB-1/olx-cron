@@ -29,8 +29,7 @@ export default {
 
     async saveToDb(ads) {
         let formatAds = this.formatAds(ads);
-        await AdvertRepository.insertMany(formatAds);
-        return formatAds;
+        return AdvertRepository.insertMany(formatAds, {rawResult: true});
     },
 
     async getAssignDemand() {
@@ -175,6 +174,10 @@ export default {
         }
         let res = await Promise.all(promises);
         for(let [i, r] of res.entries()) {
+            if (i === 0) {
+                logger.info('updateOne ' + r.nModified);
+            }
+
             if(r.ok && r.nModified) {
                 ids.push(adverts[i].url);
             }
@@ -185,6 +188,8 @@ export default {
 
     async _updateAllAdverts(adverts, doc, session) {
         const res = await AdvertRepository.updateByIds(adverts, doc, session);
+
+        logger.info('updateByIds ' + res.nModified)
 
         return res && res.ok && res.nModified === adverts.length
             ? adverts.map(a => a.url)

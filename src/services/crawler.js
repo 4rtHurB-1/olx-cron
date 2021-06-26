@@ -109,7 +109,7 @@ export default class Crawler {
 
             for(let adv of parsedAds) {
                 adv.phones = await this.olx.getAdvPhones(adv);
-                await delay(5000);
+                await delay(2500);
             }
 
             try {
@@ -151,6 +151,8 @@ export default class Crawler {
                 ? parsedAdv[fieldName][0]
                 : parsedAdv[fieldName];
         }
+
+        logger.info(`Parse advert ${adv.id}`);
 
         this._scrapped.push(adv);
     }
@@ -293,7 +295,7 @@ class OLX {
     }
 
     async getAdvPhones(adv) {
-        //logger.debug(`OLX Req - ${this.config.routes.adv_phones.replace('$offerId', adv.id)}`);
+        logger.info(`OLX Req - ${this.config.routes.adv_phones.replace('$offerId', adv.id)}`);
 
         const res = await axios({
             method: 'get',
