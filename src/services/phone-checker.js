@@ -1,5 +1,5 @@
 import logger from '../utils/logger';
-import {correctPhoneFormat, detectGenderByName, getConfigValue} from "../utils";
+import {correctPhoneFormat, detectGenderByName} from "../utils";
 
 import PhoneCheck from "../sheets/phone-check";
 
@@ -20,6 +20,7 @@ export default {
             let phone = correctPhoneFormat(adverts[i].phone);
             if (phone && !checkNumbers.includes(phone) && !uniq.find(u => u.phone === phone)) {
                 uniq.push({
+                    _id: adverts[i]._id,
                     phone,
                     url: adverts[i].url,
                     gender: adverts[i].gender || await detectGenderByName(adverts[i].username)

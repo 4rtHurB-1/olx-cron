@@ -19,7 +19,7 @@ async function detectGenderByGenderizeApi(name) {
     }
   });
 
-  logger.debug(`Gender detection (orig=${name} trans=${res.data.name} gender=${res.data.gender})`);
+  //logger.debug(`Gender detection (orig=${name} trans=${res.data.name} gender=${res.data.gender})`);
 
   return res.data.gender;
 }
