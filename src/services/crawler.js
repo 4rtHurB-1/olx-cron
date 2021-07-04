@@ -40,11 +40,11 @@ export default class Crawler {
 
     getNextUrl() {
         if(_.isArray(this.config.url)) {
-            logger.debug(`Next url old=${this.config.url.length}`);
+            logger.info(`Next url old=${this.config.url.length}`);
             let url = this.config.url[getRandomInt(this.config.url.length) - 1];
             this.config.url = _.remove(this.config.url, i => i === url);
 
-            logger.debug(`Next url new=${this.config.url.length} url=${url}`);
+            logger.info(`Next url new=${this.config.url.length} url=${url}`);
 
             return url;
         }
@@ -254,34 +254,52 @@ class OLX {
     }
 
     async getOAuthTokens() {
-        let tokens = this.getOAuthTokensFromFile(this.OLX_TOKENS_FILENAME);
-        if(_.isEmpty(tokens)) {
-            tokens = await this.getOAuthTokensFromDevice();
+        try {
+            let tokens = this.getOAuthTokensFromFile(this.OLX_TOKENS_FILENAME);
+
+            if(_.isEmpty(tokens)) {
+                logger.info(`Empty auth tokens file - get from device...`);
+                tokens = await this.getOAuthTokensFromDevice();
+            } else {
+                tokens = await this.checkAuthTokensAvailability(tokens);
+            }
 
             if(!_.isEmpty(tokens)) {
                 this.saveOAuthTokensToFile(tokens, this.OLX_TOKENS_FILENAME);
             }
+
+            return tokens;
+        } catch (e) {
+            logger.error(`Get OAuth tokens error - ${e.message}`, e);
         }
 
-        return tokens;
     }
 
-    async getOAuthTokensFromDevice() {
-        const res = await axios({
+    get _paramsForOAuthRequest() {
+        return {
             method: 'post',
             url: this.config.routes.oauth,
             data: {
                 client_id: this.config.client_id,
                 client_secret: this.config.client_secret,
-                device_id: this.config.device_id,
-                device_token: this.config.device_token,
-                grant_type: 'device',
                 scope: 'i2 read write v2',
             },
             headers: {
                 'Content-Type': 'application/json',
                 'User-Agent': this.config.user_agent,
             }
+        }
+    }
+
+    async getOAuthTokensFromDevice() {
+        const res = await axios({
+            ...this._paramsForOAuthRequest,
+            data: {
+                ...this._paramsForOAuthRequest.data,
+                grant_type: 'device',
+                device_id: this.config.device_id,
+                device_token: this.config.device_token,
+            },
         });
 
         if(_.isEmpty(res.data)) {
@@ -292,6 +310,55 @@ class OLX {
             access_token:  res.data.access_token,
             refresh_token: res.data.refresh_token,
         };
+    }
+
+    async getMe(tokens) {
+        const res = await axios({
+            method: 'get',
+            url: this.config.routes.me,
+            headers: {
+                'User-Agent': this.config.user_agent,
+                'Authorization': `Bearer ${tokens.access_token}`,
+            },
+        });
+
+        return res.data;
+    }
+
+    async getOAuthTokensFromRefreshToken(tokens) {
+        const res = await axios({
+            ...this._paramsForOAuthRequest,
+            data: {
+                ...this._paramsForOAuthRequest.data,
+                grant_type: "refresh_token",
+                refresh_token: tokens.refresh_token,
+            },
+        });
+
+        if(_.isEmpty(res.data)) {
+            return null;
+        }
+
+        return {
+            access_token:  res.data.access_token,
+            refresh_token: res.data.refresh_token,
+        };
+    }
+
+    async checkAuthTokensAvailability(tokens) {
+        try {
+            logger.info(`Check auth tokens - get me...`);
+            await this.getMe(tokens);
+            return tokens;
+        } catch (e) {
+            try {
+                logger.info(`Check auth tokens - get from refresh token...`);
+                return await this.getOAuthTokensFromRefreshToken(tokens);
+            } catch (e) {
+                logger.info(`Check auth tokens - get from device...`);
+                return await this.getOAuthTokensFromDevice();
+            }
+        }
     }
 
     async getAdvPhones(adv) {

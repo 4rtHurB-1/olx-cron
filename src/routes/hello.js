@@ -1,12 +1,12 @@
 import express from 'express';
-import axios from "axios";
+import _ from 'lodash';
 import {getConfigValue} from "../utils";
 
+import ConfigRepository from '../repositories/config';
 import AdvertList from "../services/adverts-list";
-const { Scraper, Root, DownloadContent, OpenLinks, CollectContent } = require('nodejs-web-scraper');
+const { Scraper, Root, CollectContent } = require('nodejs-web-scraper');
 
 const router = express.Router();
-const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36';
 
 router.get('/', (req, res) => {
     res.send(200, 'It works :)');
@@ -14,7 +14,7 @@ router.get('/', (req, res) => {
 
 router.get('/webhooks/expire-adverts', async (req, res) => {
     if(!req.query.token || req.query.token !== await getConfigValue('api.token')) {
-        res.status(404).json({error: 'No access'});
+        res.status(401).json({error: 'No access'});
     } else if(!req.query.urls) {
         res.status(400).json({error: `Param 'urls' is required`});
     } else {
@@ -25,7 +25,7 @@ router.get('/webhooks/expire-adverts', async (req, res) => {
 
 router.get('/req-to-olx', async (req, res) => {
     if(!req.query.token || req.query.token !== await getConfigValue('api.token')) {
-        res.status(404).json({error: 'No access'});
+        res.status(401).json({error: 'No access'});
     } else if(!req.query.url) {
         res.status(400).json({error: `Param 'url' is required`});
     } else {
@@ -48,5 +48,52 @@ router.get('/req-to-olx', async (req, res) => {
         }
     }
 })
+
+router.patch('/configs/:key', async (req, res) => {
+    if(!req.query.token || req.query.token !== await getConfigValue('api.token')) {
+        res.status(401).json({error: 'No access'});
+    } else if(!req.params.key) {
+        res.status(400).json({error: `Param 'key' is required`});
+    } else {
+        try {
+            await ConfigRepository.updateByKey(req.params.key, req.body);
+            res.status(200).send({
+                key: req.params.key,
+                value: req.body
+            });
+        } catch (e) {
+            res.status(400).send({
+                error: e.message
+            });
+            console.log(e.message);
+        }
+    }
+})
+
+router.get('/configs/:key', async (req, res) => {
+    if(!req.query.token || req.query.token !== await getConfigValue('api.token')) {
+        res.status(401).json({error: 'No access'});
+    } else if(!req.params.key) {
+        res.status(400).json({error: `Param 'key' is required`});
+    } else {
+        try {
+            const config = await ConfigRepository.getByKey(req.params.key);
+
+            const result = {};
+            if(!_.isEmpty(config)) {
+                result.key = config.key;
+                result.value = config.value;
+            }
+
+            res.status(200).send(result);
+        } catch (e) {
+            res.status(400).send({
+                error: e.message
+            });
+            console.log(e.message);
+        }
+    }
+})
+
 
 export default router;

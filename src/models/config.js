@@ -5,7 +5,7 @@ const ConfigSchema = new Schema({
     type: String,
     required: true
   },
-  data: {
+  value: {
     type: Schema.Types.Mixed
   },
 }, {

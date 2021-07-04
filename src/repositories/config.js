@@ -11,5 +11,16 @@ export default {
         return Config.find({
             key: {$in: keys}
         });
-    }
+    },
+
+    async updateByKey(key, value, session) {
+        const query = Config
+            .updateOne({ key }, {$set: { value }});
+
+        if(session) {
+            query.session(session);
+        }
+
+        return query.exec();
+    },
 };

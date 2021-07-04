@@ -34,7 +34,8 @@ export default {
         olx: {
             routes: {
                 oauth: 'https://www.olx.ua/api/open/oauth/token',
-                adv_phones: 'https://www.olx.ua/api/v1/offers/$offerId/phones'
+                adv_phones: 'https://www.olx.ua/api/v1/offers/$offerId/phones',
+                me: 'https://www.olx.ua/api/v1/users/me/'
             },
             client_id: 100018,
             client_secret: 'mo96g2Wue78VBZrhghjVJwmJk7Adn0LTs3ZI6Vdk3lgXk5hi',
@@ -150,7 +151,8 @@ export default {
         olx: {
             routes: {
                 oauth: 'https://www.olx.ua/api/open/oauth/token',
-                adv_phones: 'https://www.olx.ua/api/v1/offers/$offerId/phones'
+                adv_phones: 'https://www.olx.ua/api/v1/offers/$offerId/phones',
+                me: 'https://www.olx.ua/api/v1/users/me/'
             },
             client_id: 100018,
             client_secret: 'mo96g2Wue78VBZrhghjVJwmJk7Adn0LTs3ZI6Vdk3lgXk5hi',
