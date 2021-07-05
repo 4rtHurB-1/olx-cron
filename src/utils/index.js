@@ -41,6 +41,10 @@ function setUkrainianApproximations() {
 }
 
 export function correctPhoneFormat(phone) {
+  if(!phone) {
+    return null;
+  }
+
   // Replace all not number characters (+380 98*** to 098***)
   phone = phone.replace(/[^\d]+/g, '');
 

@@ -18,7 +18,7 @@ export default {
     },
 
     formatAds(ads) {
-        return ads.filter(ad => ad.phones && ad.phones.length)
+        return ads.filter(ad => ad.phones && ad.phones.length && ad.phones[0])
             .map(ad => ({
                 locations: 'Хмельницький',
                 phone: correctPhoneFormat(ad.phones[0]),
